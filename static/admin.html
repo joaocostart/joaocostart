@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin</title>
+<style>body{background:#0c0d11;color:#b9bcc6;font:16px/1.6 Georgia,serif;max-width:640px;margin:5vh auto;padding:0 20px}
+h2{margin:38px 0 10px;font-weight:400}input,select,textarea,button{width:100%;padding:10px;margin:6px 0;background:#15171d;color:#b9bcc6;border:1px solid #2a2d36;font:inherit}
+button{cursor:pointer}ul{padding:0}li{list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #1c1e25}li button{width:auto}</style>
+<h2>Sobre mim</h2>
+<input id=name placeholder="O teu nome">
+<textarea id=intro rows=6 placeholder="Introdução (português)"></textarea>
+<textarea id=intro_en rows=6 placeholder="Introduction (English)"></textarea>
+<button onclick=saveSite()>Guardar</button>
+<h2>Foto</h2>
+<input id=photo type=file accept="image/*"><button onclick=savePhoto()>Guardar foto</button><button onclick=delPhoto()>Remover foto</button>
+<h2>Adicionar</h2>
+<select id=sec><option value=musica>Música</option><option value=escrita>Escrita</option><option value=podcast>Podcast</option></select>
+<input id=title placeholder="Título"><input id=title_en placeholder="Title in English (opcional)"><input id=file type=file>
+<button onclick=upload()>Publicar</button><p id=msg></p>
+<h2>Publicado</h2><ul id=list></ul>
+<script>
+const $=s=>document.getElementById(s),esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+async function refresh(){
+  const d=await(await fetch('/api/site')).json();$('name').value=d.name;$('intro').value=d.intro;$('intro_en').value=d.intro_en||'';
+  let h='';for(const s of ['musica','escrita','podcast'])
+    for(const i of await(await fetch('/api/items?s='+s)).json())
+      h+=`<li><span>${s}: ${esc(i.title)}</span><button onclick="del('${i.id}')">Apagar</button></li>`;
+  $('list').innerHTML=h}
+async function saveSite(){
+  await fetch('/api/site',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('name').value,intro:$('intro').value,intro_en:$('intro_en').value})});
+  $('msg').textContent='Guardado.'}
+async function savePhoto(){const f=$('photo').files[0];if(!f){$('msg').textContent='Escolhe uma imagem.';return}
+  const fd=new FormData();fd.append('file',f);
+  const r=await fetch('/api/photo',{method:'POST',body:fd});$('msg').textContent=r.ok?'Foto guardada.':'Erro: '+await r.text()}
+async function delPhoto(){await fetch('/api/photo',{method:'DELETE'});$('msg').textContent='Foto removida.'}
+function upload(){
+  const f=$('file').files[0];if(!f){$('msg').textContent='Escolhe um ficheiro.';return}
+  const fd=new FormData();fd.append('section',$('sec').value);fd.append('title',$('title').value);fd.append('title_en',$('title_en').value);fd.append('file',f);
+  const x=new XMLHttpRequest();x.open('POST','/api/items');
+  x.upload.onprogress=e=>$('msg').textContent='A enviar '+Math.round(e.loaded/e.total*100)+'%';
+  x.onload=()=>{$('msg').textContent=x.status<300?'Publicado.':'Erro: '+x.responseText;$('file').value='';$('title').value='';$('title_en').value='';refresh()};
+  x.send(fd)}
+async function del(id){if(confirm('Apagar este item?')){await fetch('/api/items/'+id,{method:'DELETE'});refresh()}}
+refresh()
+</script></html>

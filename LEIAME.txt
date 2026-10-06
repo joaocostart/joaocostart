@@ -1,0 +1,50 @@
+SITE PESSOAL NO RASPBERRY PI
+============================
+Estrutura: app.py (servidor), static/ (site e admin), data/ (os teus conteudos).
+Nao precisa de base de dados: os textos ficam em data/*.json e os ficheiros
+(imagens, videos, audio) em data/uploads/. Faz backup copiando a pasta data/.
+
+1) INSTALAR (no Pi)
+   sudo apt update && sudo apt install -y python3-flask gunicorn ffmpeg
+   Copia esta pasta para o Pi, por exemplo para ~/site
+
+2) TESTAR
+   cd ~/site
+   $env:ADMIN_PASSWORD='Passw0rd' python3 app.py
+   Site:  http://IP-DO-PI:8000
+   Admin: http://IP-DO-PI:8000/admin  (utilizador: qualquer um; password: a que definiste)
+   No admin escreves o teu nome e a introducao, e publicas imagens/videos/audio
+   em Musica, Escrita ou Podcast. Sem ADMIN_PASSWORD o admin fica bloqueado.
+
+3) ARRANCAR SEMPRE QUE O PI LIGA
+   sudo nano /etc/systemd/system/site.service   e cola (troca "pi" e o caminho se for preciso):
+
+   [Unit]
+   Description=Site pessoal
+   After=network.target
+   [Service]
+   User=pi
+   WorkingDirectory=/home/pi/site
+   Environment=ADMIN_PASSWORD=escolhe-uma-password-forte
+   ExecStart=/usr/bin/gunicorn -w 1 --threads 8 --timeout 900 -b 127.0.0.1:8000 app:app
+   Restart=always
+   [Install]
+   WantedBy=multi-user.target
+
+   sudo systemctl enable --now site
+
+4) DOMINIO E HTTPS (unico custo: o dominio)
+   - No registo do dominio, cria um registo A para o IP publico da tua casa
+     (se o IP mudar, usa um servico de DNS dinamico).
+   - No router, encaminha as portas 80 e 443 para o Pi.
+   - sudo apt install -y caddy
+     sudo nano /etc/caddy/Caddyfile  ->  o-teu-dominio.pt { reverse_proxy 127.0.0.1:8000 }
+     sudo systemctl reload caddy
+   Alternativa sem abrir portas: Cloudflare Tunnel (gratuito), mas confirma os termos
+   deles para video, porque podem limitar streaming pesado.
+
+5) VIDEOS (para o Pi aguentar)
+   Comprime antes de publicar (720p, ~2-4 MB por minuto):
+   ffmpeg -i original.mov -vf scale=-2:720 -c:v libx264 -crf 24 -c:a aac -movflags +faststart saida.mp4
+   Formatos aceites: jpg png webp gif | mp4 webm m4v | mp3 m4a ogg wav
+   Dica: se puderes, guarda data/ num disco USB/SSD em vez do cartao SD (dura mais).

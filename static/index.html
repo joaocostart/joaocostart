@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>…</title>
+<style>
+:root{--ink:#0c0d11;--slate:#15171d;--fog:#b9bcc6;--dust:#6c7080;--moon:#8a93b5}
+*{box-sizing:border-box;margin:0}
+body{background:var(--ink);color:var(--fog);font:18px/1.75 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;padding:30px 6vw}
+header a{color:var(--dust);text-decoration:none;margin-left:30px;font-style:italic;transition:color .2s;cursor:pointer}
+header a:hover,header a.on{color:var(--fog)}
+header #logo{margin:0;color:var(--fog);font-style:normal;font-size:19px}
+#lg{margin-left:34px;font-size:15px;color:var(--dust)}
+#lg a{margin:0 3px;font-style:normal}
+a:focus-visible{outline:1px solid var(--moon);outline-offset:4px}
+main{flex:1;padding:4vh 6vw 10vh}
+.home{display:flex;align-items:flex-start;gap:5vw;flex-wrap:wrap;margin-top:8vh}
+.home img{width:min(240px,100%);aspect-ratio:4/5;object-fit:cover;filter:grayscale(.7) brightness(.9)}
+.intro{max-width:25em;font-size:18px;line-height:1.8;white-space:pre-line}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:40px 30px}
+figure{cursor:pointer}
+.th{aspect-ratio:4/5;background:var(--slate);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.th>*{width:100%;height:100%;object-fit:cover;opacity:.85;transition:opacity .3s}
+.th>span{width:auto;height:auto;font-size:44px;color:var(--dust)}
+figure:hover .th>*{opacity:1}
+figcaption{margin-top:12px;font-size:16px;color:var(--dust)}
+.empty{color:var(--dust);margin-top:14vh;font-style:italic}
+#lb{position:fixed;inset:0;background:rgba(5,5,8,.95);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9;padding:4vh 4vw}
+#lb.on{display:flex}
+#lb img,#lb video{max-width:100%;max-height:80vh}
+#lb p{margin-top:18px;color:var(--dust)}
+</style></head><body>
+<header><a id="logo" href="#/"></a><nav><a href="#/musica" data-k="musica"></a><a href="#/escrita" data-k="escrita"></a><a href="#/podcast" data-k="podcast"></a><span id="lg"><a data-l="pt" onclick="setLang('pt')">PT</a>·<a data-l="en" onclick="setLang('en')">EN</a></span></nav></header>
+<main id="m"></main><div id="lb"></div>
+<script>
+const $=s=>document.querySelector(s),m=$('#m'),lb=$('#lb'),names=['musica','escrita','podcast'];
+const T={pt:{musica:'música',escrita:'escrita',podcast:'podcast',empty:'Ainda nada por aqui.'},en:{musica:'music',escrita:'writing',podcast:'podcast',empty:'Nothing here yet.'}};
+let L='pt';try{L=localStorage.getItem('lang')||'pt'}catch(e){}
+let list=[],cur=0;
+function setLang(l){L=l;try{localStorage.setItem('lang',l)}catch(e){}route()}
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const src=i=>'/media/'+i.file;
+const ti=i=>(L==='en'&&i.title_en)?i.title_en:i.title;
+const thumb=i=>i.kind==='image'?`<img loading="lazy" src="${src(i)}" alt="${esc(ti(i))}">`:i.kind==='video'?`<video src="${src(i)}#t=0.5" preload="metadata" muted></video>`:'<span>♪</span>';
+async function route(){
+  const s=location.hash.replace('#/',''),d=await(await fetch('/api/site')).json();
+  document.documentElement.lang=L;
+  $('#logo').textContent=d.name;document.title=d.name;
+  document.querySelectorAll('nav a[data-k]').forEach(a=>{a.textContent=T[L][a.dataset.k];a.classList.toggle('on',a.hash==='#/'+s)});
+  document.querySelectorAll('#lg a').forEach(a=>a.classList.toggle('on',a.dataset.l===L));
+  if(!names.includes(s)){
+    const intro=(L==='en'&&d.intro_en)?d.intro_en:d.intro;
+    m.innerHTML='<div class="home">'+(d.photo?`<img src="/media/${d.photo}" alt="${esc(d.name)}">`:'')+'<p class="intro">'+esc(intro)+'</p></div>';return}
+  list=await(await fetch('/api/items?s='+s)).json();
+  m.innerHTML=list.length?'<div class="grid">'+list.map((i,n)=>`<figure onclick="show(${n})"><div class="th">${thumb(i)}</div><figcaption>${esc(ti(i))}</figcaption></figure>`).join('')+'</div>':'<p class="empty">'+T[L].empty+'</p>';
+}
+function show(n){cur=n;const i=list[n];
+  lb.innerHTML=(i.kind==='image'?`<img src="${src(i)}">`:i.kind==='video'?`<video src="${src(i)}" controls autoplay></video>`:`<audio src="${src(i)}" controls autoplay></audio>`)+'<p>'+esc(ti(i))+'</p>';
+  lb.classList.add('on')}
+function hide(){lb.classList.remove('on');lb.innerHTML=''}
+lb.onclick=e=>{if(!/^(IMG|VIDEO|AUDIO)$/.test(e.target.tagName))hide()};
+onkeydown=e=>{if(!lb.classList.contains('on'))return;
+  if(e.key==='Escape')hide();
+  if(e.key==='ArrowRight'&&cur<list.length-1)show(cur+1);
+  if(e.key==='ArrowLeft'&&cur>0)show(cur-1)};
+onhashchange=route;route();
+</script></body></html>
