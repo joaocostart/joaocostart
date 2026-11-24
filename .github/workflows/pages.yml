@@ -1,0 +1,57 @@
+# Gera o site (build_static.py) e publica no GitHub Pages a cada alteração no main
+# (incluindo as que o admin grava). Demora 1-2 minutos.
+name: Publicar site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v6
+
+      # política da empresa: só pacotes publicados há pelo menos 3 dias
+      - name: Instalar dependências
+        run: uv pip install --system --exclude-newer "$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)" flask cryptography
+
+      # as traduções já feitas ficam guardadas entre publicações
+      - uses: actions/cache@v4
+        with:
+          path: data/translations.json
+          key: translations-${{ github.run_id }}
+          restore-keys: translations-
+
+      - name: Gerar o site
+        run: python build_static.py
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

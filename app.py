@@ -5,7 +5,6 @@ from collections import Counter
 import geo
 import webpush
 import translate
-import publish
 from urllib.request import Request, urlopen
 from urllib.parse import urljoin, quote
 from functools import wraps
@@ -39,32 +38,10 @@ if not _secret.exists():
 app.secret_key = _secret.read_text().strip()
 app.config.update(SESSION_COOKIE_SAMESITE="Lax", SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SECURE=True)
 
-# O site público está no GitHub Pages (SITE_ORIGINS); este servidor responde em api.joaocostart.com
-# aos comentários, visitas e registos, e serve o /admin.
-SITE_ORIGINS = {o.strip() for o in os.environ.get(
-    "SITE_ORIGINS", "https://joaocostart.com,https://www.joaocostart.com").split(",") if o.strip()}
-PUBLIC_API = ("/api/comments", "/api/hit", "/api/me", "/api/register", "/api/site", "/api/items", "/api/posts")
-CONTENT_API = ("/api/items", "/api/posts", "/api/site", "/api/photo")
-
-
-@app.before_request
-def _cors_preflight():
-    if request.method == "OPTIONS" and request.headers.get("Origin") in SITE_ORIGINS:
-        return Response(status=204)
-
-
-@app.after_request
-def _cors_and_publish(r):
-    o = request.headers.get("Origin")
-    if o in SITE_ORIGINS and request.path.startswith(PUBLIC_API):
-        r.headers["Access-Control-Allow-Origin"] = o
-        r.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        r.headers["Access-Control-Allow-Headers"] = "Content-Type"
-        r.headers["Access-Control-Max-Age"] = "86400"
-        r.headers.add("Vary", "Origin")
-    if request.method in ("POST", "PUT", "DELETE") and request.path.startswith(CONTENT_API) and r.status_code < 400:
-        publish.schedule()  # o admin mudou conteúdo: atualiza o GitHub Pages
-    return r
+# Em produção o site está no GitHub Pages (gerado por build_static.py) e a parte "viva"
+# (comentários, visitas, notificações) no Worker da Cloudflare (worker/). Este servidor
+# serve para gerar o site e para testar no computador.
+BACKGROUND = not os.environ.get("NO_BACKGROUND")
 
 
 def load(p, default):
@@ -1502,7 +1479,8 @@ def test_notify():
     return "", 204
 
 
-threading.Thread(target=geo.update_if_old, daemon=True).start()  # base de localização: atualiza 1x/mês
+if BACKGROUND:
+    threading.Thread(target=geo.update_if_old, daemon=True).start()  # base de localização: atualiza 1x/mês
 
 
 def _warm_translations():  # ao arrancar: põe na fila o que ainda não tem tradução
@@ -1511,7 +1489,8 @@ def _warm_translations():  # ao arrancar: põe na fila o que ainda não tem trad
                    + [p.get(f) for p in posts for f in POST_TR] + [c.get(f) for c in cs for f in COMMENT_TR])
 
 
-threading.Thread(target=_warm_translations, daemon=True).start()
+if BACKGROUND:
+    threading.Thread(target=_warm_translations, daemon=True).start()
 
 
 if __name__ == "__main__":

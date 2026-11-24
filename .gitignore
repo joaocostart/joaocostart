@@ -18,3 +18,9 @@ data/geo/
 # chave das sessões (criada pelo app.py)
 data/secret.key
 data/publish.log
+# gerado pelo GitHub Actions
+docs/
+# Worker
+worker/node_modules/
+worker/.wrangler/
+.dev.vars

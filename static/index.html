@@ -298,7 +298,9 @@ const num=n=>String(n).padStart(2,'0');
 const API=window.API_BASE||'';  // servidor dos comentários/visitas (no GitHub Pages: api.joaocostart.com)
 async function getJSON(u,def){try{const r=await fetch(u);return r.ok?await r.json():def}catch(e){return def}}
 async function data(){  // site + todos os itens + opiniões (uma vez por carregamento)
-  if(!cache){const[site,items,posts]=await Promise.all([getJSON('/api/site',{}),getJSON('/api/items',[]),getJSON('/api/posts',[])]);cache={site,items,posts}}
+  if(!cache){const[site,items,posts,cn]=await Promise.all([getJSON('/api/site',{}),getJSON('/api/items',[]),getJSON('/api/posts',[]),API?getJSON(API+'/api/counts',null):null]);
+    if(cn){items.forEach(i=>i.comments=cn[i.section+'/'+i.id]||0);posts.forEach(p=>p.comments=cn['opinioes/'+p.id]||0)}  // nº de comentários em direto
+    cache={site,items,posts}}
   return cache}
 
 /* ---- visitas ---- */

@@ -1,11 +1,12 @@
-"""Gera a parte pública do site (para o GitHub Pages) na pasta docs/.
+"""Gera o site completo para o GitHub Pages na pasta docs/.
 
 Uso:  python build_static.py
-Corre o app.py "a fingir" (sem servidor) e grava cada página e o conteúdo
-(introdução, escritas, posts, imagens) como ficheiros. Os comentários, visitas
-e registos continuam a ir ao servidor em API (o Pi, via Cloudflare Tunnel),
-e joaocostart.com/admin reencaminha para o admin nesse servidor.
-No servidor isto corre sozinho depois de cada alteração no admin (publish.py).
+O GitHub Actions corre isto a cada alteração no repositório e publica docs/
+(ver .github/workflows/pages.yml). Corre o app.py "a fingir" (sem servidor) e
+grava cada página e o conteúdo (introdução, escritas, posts, imagens) como
+ficheiros, já com a tradução para inglês.
+Os comentários, registos, visitas e notificações vão ao Worker da Cloudflare
+(api.joaocostart.com, pasta worker/). O admin fica em joaocostart.com/admin.
 """
 import json, os, shutil, sys
 from pathlib import Path
@@ -16,13 +17,11 @@ BASE = Path(__file__).parent
 OUT = BASE / "docs"
 
 os.environ.setdefault("ADMIN_PASSWORD", "build-estatico")  # o app.py precisa de uma; nada é publicado
+os.environ["NO_BACKGROUND"] = "1"  # sem descargas em segundo plano no app.py
 sys.path.insert(0, str(BASE))
 import app as site  # noqa: E402
 
 HEAD = f"<script>window.API_BASE={json.dumps(API)}</script>\n"
-ADMIN_REDIRECT = (f'<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex">'
-                  f'<meta http-equiv="refresh" content="0;url={API}/admin"><title>Admin</title>'
-                  f'<a href="{API}/admin">Ir para o admin</a>')
 
 
 def get(c, path):
@@ -33,14 +32,14 @@ def get(c, path):
 def write(rel, data):
     p = OUT / rel
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_bytes(data)
+    p.write_bytes(data if isinstance(data, bytes) else data.encode("utf-8"))
 
 
 def page(c, path):
     status, html = get(c, path)
     html = html.decode("utf-8").replace("</head>", HEAD + "</head>", 1)
     rel = "404.html" if path == "/404" else (path.strip("/") + "/index.html" if path != "/" else "index.html")
-    write(rel, html.encode("utf-8"))
+    write(rel, html)
     return status
 
 
@@ -50,7 +49,7 @@ def main():
     c = site.app.test_client()
     items = json.loads(get(c, "/api/items")[1])
     posts = json.loads(get(c, "/api/posts")[1])
-    # traduz já tudo para inglês, para a versão estática ter as duas línguas
+    # traduz já tudo para inglês, para o site ter as duas línguas
     s = json.loads(get(c, "/api/site")[1])
     site.translate.now(s.get("intro"), *[i.get(f) for i in items for f in site.ITEM_TR],
                        *[p.get(f) for p in posts for f in site.POST_TR], timeout=300)
@@ -64,9 +63,20 @@ def main():
 
     for api in ("site", "items", "posts"):
         write(f"api/{api}", get(c, f"/api/{api}")[1])
-    write("admin/index.html", ADMIN_REDIRECT.encode("utf-8"))
     for f in ("ads.txt", "robots.txt", "sitemap.xml"):
         write(f, get(c, "/" + f)[1])
+
+    # admin: o mesmo admin.html, com o adaptador que grava no GitHub e fala com o Worker
+    admin = (BASE / "static" / "admin.html").read_text("utf-8")
+    i = admin.index("<script>")  # antes do script do admin
+    admin = admin[:i] + HEAD + '<script src="/s/admin-shim.js"></script>\n' + admin[i:]
+    write("admin/index.html", admin)
+    write("admin.webmanifest", json.dumps({
+        "name": "Admin · " + s.get("name", "site"), "short_name": "Admin", "start_url": "/admin/", "scope": "/",
+        "display": "standalone", "background_color": "#0f1112", "theme_color": "#0f1112",
+        "icons": [{"src": "/s/icon-192.png", "sizes": "192x192", "type": "image/png"},
+                  {"src": "/s/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False))
+    shutil.copy2(BASE / "static" / "sw.js", OUT / "sw.js")  # notificações push do admin
 
     shutil.copytree(BASE / "static", OUT / "s", ignore=shutil.ignore_patterns("admin.html", "index.html"))
     up = BASE / "data" / "uploads"
@@ -75,7 +85,7 @@ def main():
         if f.is_file() and f.suffix.lower() != ".txt":
             shutil.copy2(f, OUT / "media" / f.name)
 
-    write("CNAME", (DOMAIN + "\n").encode())
+    write("CNAME", DOMAIN + "\n")
     write(".nojekyll", b"")
     print("pronto:", OUT)
 

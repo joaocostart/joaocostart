@@ -1,5 +1,0 @@
-User-agent: *
-Disallow: /admin
-Disallow: /api/
-Disallow: /auth/
-Sitemap: https://joaocostart.com/sitemap.xml
