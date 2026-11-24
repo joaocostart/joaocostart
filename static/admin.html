@@ -1,44 +1,428 @@
 <!doctype html>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5856906154435144"
-     crossorigin="anonymous"></script>
-<html lang="pt"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin</title>
-<style>body{background:#0c0d11;color:#b9bcc6;font:16px/1.6 Georgia,serif;max-width:640px;margin:5vh auto;padding:0 20px}
-h2{margin:38px 0 10px;font-weight:400}input,select,textarea,button{width:100%;padding:10px;margin:6px 0;background:#15171d;color:#b9bcc6;border:1px solid #2a2d36;font:inherit}
-button{cursor:pointer}ul{padding:0}li{list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #1c1e25}li button{width:auto}</style>
-<h2>Sobre mim</h2>
-<input id=name placeholder="O teu nome">
-<textarea id=intro rows=6 placeholder="Introdução (português)"></textarea>
-<textarea id=intro_en rows=6 placeholder="Introduction (English)"></textarea>
-<button onclick=saveSite()>Guardar</button>
-<h2>Foto</h2>
-<input id=photo type=file accept="image/*"><button onclick=savePhoto()>Guardar foto</button><button onclick=delPhoto()>Remover foto</button>
-<h2>Adicionar</h2>
-<select id=sec><option value=musica>Música</option><option value=escrita>Escrita</option><option value=podcast>Podcast</option></select>
-<input id=title placeholder="Título"><input id=title_en placeholder="Title in English (opcional)"><input id=file type=file>
-<button onclick=upload()>Publicar</button><p id=msg></p>
-<h2>Publicado</h2><ul id=list></ul>
+<html lang="pt"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin</title><link rel=manifest href="/admin.webmanifest"><meta name=apple-mobile-web-app-capable content=yes><link rel=apple-touch-icon href="/s/icon-192.png"><meta name=theme-color content="#0f1112">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box}body{background:#0b0d0e;color:#e4e7e3;font:17px/1.6 "EB Garamond",Georgia,serif;max-width:900px;margin:0 auto;padding:0 20px 80px}
+.top{position:sticky;top:0;z-index:5;background:#0b0d0e;margin:0 -20px;padding:14px 20px 0;border-bottom:1px solid #252b2e;display:flex;gap:4px 18px;flex-wrap:wrap;align-items:center}
+.top b{font:500 28px "Cormorant Garamond",serif;color:#86b39b;margin-right:auto}
+.top .tabs{display:flex;gap:2px;flex-wrap:wrap;order:3;width:100%;overflow-x:auto}
+.tabs a{color:#959d99;text-decoration:none;font:500 13px "EB Garamond",serif;letter-spacing:.14em;text-transform:uppercase;padding:10px 12px;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs a:hover{color:#e4e7e3}.tabs a.on{color:#e4e7e3;border-color:#86b39b}
+.tabs i{font-style:normal;background:#86b39b;color:#0b0d0e;border-radius:9px;padding:0 6px;font-size:11px;letter-spacing:0}.tabs i:empty{display:none}
+.top .site{margin-left:auto;color:#86b39b;text-decoration:none;font-size:14px}
+.tab{display:none;animation:fade .25s ease}.tab.on{display:block}@keyframes fade{from{opacity:0;transform:translateY(6px)}}
+.tiles4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.tiles4 div{background:#121618;border-radius:6px;padding:16px}.tiles4 b{display:block;font-size:34px;font-weight:400;color:#eef0ec}.tiles4 small{font-size:13px}
+.quick{display:flex;gap:10px;margin:18px 0 8px}.quick button{width:auto;padding:10px 18px}
+a.more{display:inline-block;margin-top:8px;color:#86b39b;text-decoration:none;font-size:14px}
+h2.big{margin-top:30px}
+.mebox{background:#121618;border:1px solid #252b2e;border-radius:8px;padding:14px 16px;margin-bottom:22px}.mebox p{margin:4px 0 8px}
+.mebtns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.mebtns button{width:auto;padding:8px 14px}.mebtns input{flex:1;min-width:200px}
+.scrollx{overflow:auto;max-height:620px;border:1px solid #252b2e;border-radius:6px}
+table.vt{font-size:14px;min-width:820px}.vt th{position:sticky;top:0;background:#121618;text-align:left;font-weight:500;color:#86b39b;padding:8px 6px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.vt td{padding:8px 6px}.vt tr.me td{opacity:.45}.vt b{font-weight:500;color:#eef0ec}.vt .anon{color:#959d99}
+.vt button{width:auto;padding:1px 7px;margin:0 0 0 4px;font-size:12px}.vt .pg{max-width:230px;color:#959d99}
+.tagme{background:#86b39b;color:#0b0d0e;border-radius:4px;padding:0 5px;font-size:11px;margin-left:4px}
+details.morest{margin-top:26px}details.morest>summary{font-size:16px;color:#86b39b}
+.who{background:none;border:0;padding:0;width:auto;margin:0;font:inherit;color:#eef0ec;font-weight:500;cursor:pointer;text-align:left;text-decoration:underline;text-decoration-color:#3a4246;text-underline-offset:3px}.who.anon{color:#959d99;font-weight:400}.who:hover{text-decoration-color:#86b39b}
+#prof{position:fixed;inset:0;z-index:20;background:rgba(5,6,7,.75);display:grid;place-items:center;padding:16px}#prof[hidden]{display:none}
+.pbox{background:#0f1314;border:1px solid #252b2e;border-radius:10px;width:min(860px,100%);max-height:90vh;overflow:auto;padding:24px 26px;position:relative}
+.pbox h3{font:500 32px "Cormorant Garamond",serif;margin:0 0 4px;color:#eef0ec}.pbox .x{position:absolute;top:10px;right:12px;width:auto;background:none;border:0;font-size:26px;color:#959d99;cursor:pointer}
+.facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px 18px;margin:16px 0 20px}.facts div{border-left:2px solid #252b2e;padding-left:10px}.facts b{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#86b39b;font-weight:500}.facts span{font-size:15px;word-break:break-word}
+/* blocos e formulários */
+.headrow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:30px}.headrow h2{margin:0}
+.quick{display:flex;gap:8px;flex-wrap:wrap}.quick button,.actions button,.audiorow button{width:auto;padding:10px 18px;margin:0}
+button.primary{background:#86b39b;color:#0b0d0e;border-color:#86b39b;font-weight:500}button.primary:hover{filter:brightness(1.08)}
+.panel{background:#121618;border:1px solid #252b2e;border-radius:10px;padding:20px 22px;margin:18px 0 26px}
+.panel h3{font:500 26px "Cormorant Garamond",serif;margin:0 0 12px;color:#eef0ec}
+.panelhead{display:flex;justify-content:space-between;align-items:center}.panelhead h3{margin:0}
+.close{width:auto;background:none;border:0;font-size:26px;color:#959d99;padding:0 4px;margin:0}
+label.f,div.f{display:block;margin:12px 0 0;color:#c7ccc8;font-size:15px}label.f small,div.f small{color:#858d89}
+label.f input,label.f select,label.f textarea{margin-top:6px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}@media(max-width:620px){.row2{grid-template-columns:1fr}}
+label.chk{display:flex;align-items:center;gap:8px;margin:10px 0 0;color:#c7ccc8;font-size:15px}label.chk input{width:auto;margin:0}
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:16px}.msg{color:#86b39b;font-size:14px}
+.audiorow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}.audiorow input{flex:1;min-width:200px;margin:0}
+details.en{margin-top:14px}details.en>summary{cursor:pointer;color:#86b39b;font-size:14px}
+.panel audio,#form_post audio{width:100%;margin-top:8px}
+ul.items li{padding:10px 0}
+.mebox{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:10px 14px}.mebox .mechk{display:flex;gap:4px 16px;flex-wrap:wrap;width:100%}.mebox .mechk label.chk{margin:0;font-size:14px}
+@media(max-width:640px){
+ body{padding:0 14px 60px}.top{margin:0 -14px;padding:10px 14px 0}.top .tabs a{padding:10px 9px;letter-spacing:.08em;font-size:12px}
+ h2{font-size:28px;margin-top:30px}
+ .tiles{gap:6px}.tiles div{padding:10px}.tiles b{font-size:24px}
+ .mebox{padding:10px 12px}.mebox .mebtns button{flex:1;padding:8px 10px;font-size:14px}
+ /* tabela de visitas -> cartões */
+ .scrollx{overflow:visible;max-height:none;border:0;border-radius:0}
+ table.vt{min-width:0;font-size:14px}.vt thead{display:none}.vt tbody{display:block}
+ .vt tr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;background:#121618;border:1px solid #252b2e;border-radius:10px;padding:12px 14px;margin-bottom:10px}
+ .vt tr.me{opacity:.55}.vt tr.me td{opacity:1}
+ .vt td{display:block;border:0;padding:0}
+ .vt .c-who{grid-column:1;grid-row:1}.vt .c-who br,.vt .c-who>small{display:none}
+ .vt .c-when{grid-column:2;grid-row:1;text-align:right;color:#959d99;font-size:13px;white-space:nowrap}.vt .c-when br{display:none}.vt .c-when small{margin-left:6px}
+ .vt .c-where,.vt .c-dev,.vt .c-src,.vt .c-pages{grid-column:1/-1;display:grid;grid-template-columns:76px 1fr;column-gap:10px;padding-top:6px;margin-top:4px;border-top:1px solid #1d2326}
+ .vt td[data-l]::before{content:attr(data-l);grid-column:1;grid-row:1/span 3;color:#86b39b;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding-top:3px}
+ .vt td[data-l] br{display:none}.vt td[data-l]>small{grid-column:2;display:block}
+ .vt .pg{max-width:none}
+ .vt .who{font-size:16px}
+ /* ficha do visitante */
+ #prof{padding:0;place-items:end stretch}.pbox{width:100%;max-height:88vh;border-radius:14px 14px 0 0;padding:20px 16px}
+ .pbox h3{font-size:26px;padding-right:30px}.facts{grid-template-columns:1fr 1fr;gap:10px 12px}.facts span{font-size:14px}
+ .pbox table tr{display:block;padding:8px 0;border-bottom:1px solid #1d2326}.pbox table td{display:block;border:0;padding:1px 0;text-align:left;font-size:13px}
+ .top .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.top .tabs::-webkit-scrollbar{display:none}
+ .cols{gap:6px}
+}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#86b39b;color:#0b0d0e;padding:10px 18px;border-radius:6px;opacity:0;transition:.3s;pointer-events:none;z-index:30}#toast.on{opacity:1;transform:translate(-50%,0)}
+hr{border:0;border-top:1px solid #252b2e;margin:50px 0 0}
+@media(max-width:620px){.tiles4{grid-template-columns:1fr 1fr}}
+h2{margin:46px 0 10px;font:500 36px "Cormorant Garamond",serif;color:#eef0ec;scroll-margin-top:70px}
+input,select,textarea,button{width:100%;padding:10px;margin:6px 0;background:#121618;color:#eef0ec;border:1px solid #252b2e;border-radius:6px;font:inherit}
+input:focus,select:focus,textarea:focus{outline:2px solid #86b39b;outline-offset:1px}
+button{cursor:pointer;background:#191e21}button:hover{border-color:#86b39b}
+button[onclick^=upload],button[onclick^=publishPost],button[onclick^=saveSite],button[onclick^=savePhoto]{background:#86b39b;color:#0b0d0e;border-color:#86b39b;font-weight:500;letter-spacing:.04em}ul{padding:0}li{list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #191e21}li>span:first-child{display:flex;align-items:center;gap:12px;min-width:0}.th{width:46px;height:46px;flex:none;object-fit:cover;object-position:top;background:#191e21;border-radius:4px;display:grid;place-items:center;color:#86b39b}li button{width:auto}label{display:block;margin-top:14px;color:#959d99}small{color:#858d89}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.tiles div{background:#121618;border-radius:6px;padding:14px}.tiles b{display:block;font-size:30px;font-weight:400;color:#eef0ec}.tiles small{font-size:13px}
+.ct{margin:22px 0 6px;color:#eef0ec}
+.chart{display:flex;align-items:flex-end;gap:2px;height:140px;border-bottom:1px solid #252b2e;position:relative}
+.axis{display:flex;justify-content:space-between}.chart div{flex:1;display:flex;align-items:flex-end;justify-content:center;height:100%;cursor:default}
+.chart i{width:min(100%,24px);background:#3f86c4;border-radius:4px 4px 0 0;min-height:1px}
+.chart div:hover i{background:#5596cf}
+.tip{position:fixed;background:#191e21;color:#eef0ec;border:1px solid #252b2e;padding:4px 8px;font-size:13px;pointer-events:none;z-index:9}
+table{width:100%;border-collapse:collapse;font-size:14px}td{padding:4px 6px;border-bottom:1px solid #191e21;vertical-align:top}td.n{text-align:right;color:#eef0ec;white-space:nowrap}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}.scroll{max-height:360px;overflow:auto}
+.cm{padding:14px 0;border-bottom:1px solid #191e21}.cm b{font-weight:400}.cm p{white-space:pre-line;margin:6px 0}.cm .rp{border-left:2px solid #86b39b;padding-left:10px;color:#959d99}.cm button{width:auto;padding:6px 12px;margin:4px 6px 0 0}
+.steps{padding-left:22px}.steps li{margin:6px 0}code{background:#191e21;padding:3px 8px;border-radius:4px;font-size:15px;color:#eef0ec;user-select:all}.steps a{color:#86b39b}
+td a{color:#e4e7e3}summary{cursor:pointer;color:#858d89;font-size:14px;margin-top:6px}
+@media(max-width:560px){.cols{grid-template-columns:1fr}}</style>
+<div class=top><b>admin</b><nav class=tabs>
+<a data-t=resumo href="#resumo">Resumo</a><a data-t=publicar href="#publicar">Conteúdo</a><a data-t=comentarios href="#comentarios">Comentários <i id=t_cm></i></a><a data-t=visitas href="#visitas">Visitas</a><a data-t=definicoes href="#definicoes">Definições</a></nav><a class=site href="/" target=_blank>ver site ↗</a></div>
+<section class=tab data-tab=resumo>
+<h2>Resumo</h2>
+<div class=tiles4><div><b id=r_today>–</b><small>visitantes hoje</small></div><div><b id=r_week>–</b><small>visitantes esta semana</small></div><div><b id=r_cm>–</b><small>comentários</small></div><div><b id=r_pub>–</b><small>publicações</small></div></div>
+<div class=quick><button class=primary onclick="openForm('item')">＋ Nova obra</button><button class=primary onclick="openForm('post')">＋ Nova opinião</button></div>
+<div class=cols><div><p class=ct>Últimos comentários</p><div id=r_comments><small>…</small></div><a class=more href="#comentarios">ver todos →</a></div>
+<div><p class=ct>Últimas visitas</p><table id=r_people></table><a class=more href="#visitas">ver visitas →</a></div></div>
+</section>
+<section class=tab data-tab=publicar>
+<div class=headrow><h2>Conteúdo</h2><div class=quick><button class=primary onclick="openForm('item')">＋ Nova obra</button><button class=primary onclick="openForm('post')">＋ Nova opinião</button></div></div>
+
+<div id=form_item class=panel hidden>
+<div class=panelhead><h3 id=i_head>Nova obra</h3><button class=close onclick=cancelItem() title="fechar">×</button></div>
+<p id=i_editing hidden><small>A editar. O ficheiro atual mantém-se se não escolheres outro.</small></p>
+<div class=row2><label class=f>Secção<select id=sec><option value=musica>Música</option><option value=escrita>Escrita</option><option value=podcast>Podcast</option></select></label>
+<label class=f>Título<input id=title></label></div>
+<label class=f>Texto <small>— o poema, a letra ou uma descrição (a Google lê texto, não imagens)</small><textarea id=itext rows=9></textarea></label>
+<label class=f>Ficheiro <small>— imagem, vídeo ou áudio (opcional se escreveres o texto)</small><input id=file type=file></label>
+<label id=i_rmfile hidden class=chk><input type=checkbox id=i_rm> remover o ficheiro atual</label>
+<label class=f>Música / áudio <small>— opcional; mp3, m4a, wav, ogg, flac… aparece por baixo da media para ouvir</small><input id=i_audio type=file accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac,.aac,.opus"></label>
+<div id=i_curaudio hidden><small>Áudio atual (mantém-se se não escolheres outro):</small><audio id=i_curplay controls preload=none></audio><label class=chk><input type=checkbox id=i_rmaudio> remover o áudio</label></div>
+<details class=en><summary>Inglês: traduzido automaticamente — só preenchas para corrigir a tradução</summary><label class=f>Title<input id=title_en></label><label class=f>Text<textarea id=itext_en rows=4></textarea></label></details>
+<div class=actions><button id=i_btn class=primary onclick=upload()>Publicar</button><button id=i_cancel onclick=cancelItem() hidden>Cancelar</button><span id=msg class=msg></span></div>
+</div>
+
+<div id=form_post class=panel hidden>
+<div class=panelhead><h3 id=p_head>Nova opinião</h3><button class=close onclick=cancelPost() title="fechar">×</button></div>
+<label class=f>Título <small>— ex.: nome da música / artista</small><input id=p_title></label>
+<div class=row2><label class=f>Media<select id=p_type onchange=ptype()><option value=none>Sem media</option><option value=image>Imagem</option><option value=video>Vídeo</option><option value=link>Link (notícia, Spotify, YouTube…)</option></select></label><div></div></div>
+<div id=p_filebox hidden><label class=f>Ficheiro<small id=p_curfile hidden> — já tem um; só escolhe outro para o substituir</small><input id=p_file type=file></label></div>
+<div id=p_urlbox hidden><label class=f>Link<input id=p_url placeholder="https://…"></label><small id=p_urlhint></small></div>
+<div id=p_coverbox hidden><label class=f>Imagem de pré-visualização <small>— opcional; se não puseres, uso a do link</small><input id=p_cover type=file accept="image/*"></label><label id=p_remcover hidden class=chk><input type=checkbox id=p_rmcover> remover a imagem atual</label></div>
+<label class=f>Música <small>— opcional; mp3, m4a, wav, ogg, flac… aparece por baixo da media para ouvir</small><input id=p_music type=file accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac,.aac,.opus"></label>
+<div id=p_curmusic hidden><small>Música atual (mantém-se se não escolheres outra):</small><audio id=p_curmusicplay controls preload=none></audio><label class=chk><input type=checkbox id=p_rmmusic> remover a música</label></div>
+<label class=f>A tua opinião<textarea id=p_text rows=8></textarea></label>
+<div class=f>Opinião em áudio <small>— opcional</small>
+<div class=audiorow><button id=p_rec onclick=rec()>● Gravar</button><button onclick=clearAudio()>Limpar</button><input id=p_audio type=file accept="audio/*" onchange="recBlob=null;$('p_play').hidden=true"></div>
+<audio id=p_play controls hidden></audio><div id=p_curaudio hidden><small>Áudio atual (mantém-se se não gravares outro):</small><audio id=p_curplay controls></audio><label class=chk><input type=checkbox id=p_rmaudio> remover o áudio</label></div></div>
+<details class=en><summary>Inglês: traduzido automaticamente — só preenchas para corrigir a tradução</summary><label class=f>Title<input id=p_title_en></label><label class=f>Text<textarea id=p_text_en rows=4></textarea></label></details>
+<div class=actions><button id=p_btn class=primary onclick=publishPost()>Publicar opinião</button><button id=p_cancel onclick=cancelPost() hidden>Cancelar</button><span id=pmsg class=msg></span></div>
+</div>
+
+<p class=ct>Obras <small>(música, escrita, podcast)</small></p><ul id=list class=items></ul>
+<p class=ct>Opiniões</p><ul id=plist class=items></ul>
+</section>
+<section class=tab data-tab=comentarios>
+<h2>Comentários</h2>
+<p class=ct>Por página</p><small>Carrega numa linha para ver só os comentários dessa página.</small>
+<div class=scrollx style="max-height:320px"><table class=vt style="min-width:0"><thead><tr><th>Página</th><th>Secção</th><th style="text-align:right">Comentários</th></tr></thead><tbody id=c_pages></tbody></table></div>
+<p class=ct id=c_head>Todos os comentários</p><small>Os mais recentes primeiro. A tua resposta aparece no site por baixo do comentário.</small>
+<div id=c_filter hidden><button style="width:auto;padding:4px 12px" onclick="cFilter=null;renderComments()">← ver todos</button></div>
+<div id=clist></div>
+<p class=ct style="margin-top:44px">Pessoas registadas</p><small>Quem se registou para comentar. As visitas destas pessoas aparecem com o nome em Visitas.</small>
+<div class=scrollx><table class=vt><thead><tr><th>Nome</th><th>Instagram</th><th>Email</th><th>Registo</th><th>Comentários</th><th>Visitas</th><th>Última visita</th><th></th></tr></thead><tbody id=u_list></tbody></table></div>
+</section>
+<section class=tab data-tab=visitas>
+<h2>Visitas</h2>
+<div class=mebox><span id=me_info><small>…</small></span><div class=mebtns><button onclick="markMe('vid')">Este browser sou eu</button><button onclick="markMe('ip')" id=me_ipbtn>Este IP é meu (casa)</button></div><div class=mechk><label class=chk><input type=checkbox id=hide_me style="width:auto" onchange="try{localStorage.setItem('hideMe',this.checked?'1':'')}catch(e){};loadVisits()"> esconder as minhas visitas</label><label class=chk><input type=checkbox id=notrack style="width:auto" onchange="try{this.checked?localStorage.setItem('noTrack','1'):localStorage.removeItem('noTrack')}catch(e){}"> não registar de todo as visitas deste browser</label></div></div>
+<div class=tiles><div><b id=v_today>–</b><small>últimas 24h</small></div><div><b id=v_week>–</b><small>7 dias</small></div><div><b id=v_month>–</b><small>30 dias</small></div></div>
+<small>Pessoas diferentes (páginas vistas entre parênteses). Os dados ficam 90 dias.</small>
+<p class=ct>Cada visita</p>
+<small>Uma linha por visita (30 min sem atividade = visita nova). Carrega no nome para ver a ficha completa dessa pessoa; usa ✎ para lhe dar um nome.</small>
+<div class=scrollx><table class=vt><thead><tr><th>Quando</th><th>Quem</th><th>Onde</th><th>Aparelho</th><th>Veio de</th><th>Viu</th></tr></thead><tbody id=v_sessions></tbody></table></div>
+<p class=ct>Links personalizados</p>
+<small>Cria um link para cada pessoa a quem envias o site. Quando ela o abrir, as visitas dela aparecem com o nome.</small>
+<div class=mebtns><input id=l_name placeholder="Nome da pessoa (ex.: Ana)" onkeydown="if(event.key==='Enter')addLink()"><button onclick=addLink() style="width:auto">Criar link</button></div>
+<table id=l_list></table>
+<details class=morest><summary>Mais estatísticas</summary>
+<p class=ct>Páginas vistas por dia, últimos 30 dias</p>
+<small id=v_max></small><div id=chart class=chart></div><div class=axis><small id=v_from></small><small>hoje</small></div><div id=tip class=tip hidden></div>
+<details><summary>ver como tabela</summary><table id=v_daily></table></details>
+<div class=cols><div><p class=ct>Páginas mais vistas</p><table id=v_pages></table></div><div><p class=ct>De onde vêm</p><table id=v_refs></table></div></div>
+<div class=cols><div><p class=ct>Países</p><table id=v_countries></table></div><div><p class=ct>Cidades</p><table id=v_cities></table></div></div>
+<p class=ct>Dispositivos</p><table id=v_dev></table>
+</details>
+<small>Localização aproximada (pela rede, não é exata): <a href="https://db-ip.com" target=_blank rel=noopener style="color:inherit">IP Geolocation by DB-IP</a></small>
+<div id=prof hidden></div>
+</section>
+<section class=tab data-tab=definicoes>
+<h2>Definições</h2>
+<div class=panel><h3>Perfil</h3>
+<label class=f>Nome<input id=name></label>
+<label class=f>Introdução <small>— aparece na página inicial (a 1.ª linha pode ser o teu nome)</small><textarea id=intro rows=5></textarea></label>
+<details class=en><summary>Introdução em inglês: traduzida automaticamente — só preenchas para corrigir</summary><textarea id=intro_en rows=5></textarea></details>
+<div class=row2><label class=f>Instagram<input id=instagram placeholder="https://www.instagram.com/…"></label><label class=f>Facebook<input id=facebook placeholder="https://www.facebook.com/…"></label></div>
+<div class=actions><button class=primary onclick=saveSite()>Guardar perfil</button></div></div>
+
+<div class=panel><h3>Foto</h3>
+<label class=f>Nova foto<input id=photo type=file accept="image/*"></label>
+<div class=actions><button class=primary onclick=savePhoto()>Guardar foto</button><button onclick=delPhoto()>Remover foto</button></div></div>
+
+<div class=panel><h3>Notificações no telemóvel</h3>
+<p><small>Abre esta página no telemóvel e carrega no botão. No iPhone, primeiro Partilhar → "Adicionar ao ecrã principal" e abre o admin a partir desse ícone.</small></p>
+<div class=actions><button id=n_enable class=primary onclick=enablePush()>🔔 Ativar neste aparelho</button><button onclick=testNotify()>Enviar teste</button><span id=nmsg class=msg></span></div>
+<ul id=n_devices></ul>
+<label class=chk><input type=checkbox id=n_visits onchange=saveNotify()> avisar quando alguém visita o site (uma vez por visita)</label>
+<details class=en><summary>Outros canais (WhatsApp, app ntfy)</summary>
+<p class=ct>WhatsApp</p>
+<label><input type=checkbox id=n_wa style="width:auto" onchange=saveNotify()> enviar para o meu WhatsApp</label>
+<input id=n_phone placeholder="+351…" onchange=saveNotify()><input id=n_key placeholder="API key do CallMeBot" onchange=saveNotify()>
+<ol class=steps><li>Abre <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target=_blank rel=noopener>esta página do CallMeBot</a> e guarda o número do bot nos contactos (se disser "bot is currently full", tenta daqui a uns dias).</li>
+<li>Envia-lhe pelo WhatsApp: <code>I allow callmebot to send me messages</code></li>
+<li>Cola aqui em cima a API key que te responderem, liga "enviar para o meu WhatsApp" e carrega em <b>Testar WhatsApp</b>.</li></ol>
+<button onclick=testWA() style="width:auto">Testar WhatsApp</button>
+<p class=ct>App ntfy</p>
+<label><input type=checkbox id=n_ntfy style="width:auto" onchange=saveNotify()> enviar para a app ntfy</label>
+<ol class=steps>
+<li>Instala a app <b>ntfy</b> (gratuita): <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target=_blank rel=noopener>Android</a> · <a href="https://apps.apple.com/app/ntfy/id1625396347" target=_blank rel=noopener>iPhone</a></li>
+<li>Na app, carrega em <b>+</b> e subscreve este canal (servidor ntfy.sh):<br><code id=n_topic>…</code> <button onclick="navigator.clipboard.writeText($('n_topic').textContent);this.textContent='copiado ✓'" style="width:auto;padding:4px 10px">copiar</button></li>
+<li>Carrega em <b>Enviar teste</b>.</li></ol>
+<div style="display:flex;gap:8px;margin-top:8px"><button onclick="if(confirm('Criar um canal ntfy novo?'))saveNotify(true)">Gerar canal ntfy novo</button></div>
+<div class=actions><button onclick="if(confirm('Criar um canal ntfy novo?'))saveNotify(true)">Gerar canal ntfy novo</button></div>
+</details></div>
+</section>
 <script>
 const $=s=>document.getElementById(s),esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 async function refresh(){
-  const d=await(await fetch('/api/site')).json();$('name').value=d.name;$('intro').value=d.intro;$('intro_en').value=d.intro_en||'';
-  let h='';for(const s of ['musica','escrita','podcast'])
+  const d=await(await fetch('/api/site')).json();$('name').value=d.name;$('intro').value=d.intro;$('intro_en').value=d.intro_en||'';$('instagram').value=d.instagram||'';$('facebook').value=d.facebook||'';
+  items={};posts={};let h='';for(const s of ['musica','escrita','podcast'])
     for(const i of await(await fetch('/api/items?s='+s)).json())
-      h+=`<li><span>${s}: ${esc(i.title)}</span><button onclick="del('${i.id}')">Apagar</button></li>`;
-  $('list').innerHTML=h}
+      {items[i.id]=i;h+=`<li><span>${i.kind==='image'?`<img class=th src="/media/${i.file}" loading=lazy alt="">`:`<i class=th>${i.kind==='video'?'▶':i.kind==='text'?'¶':'♪'}</i>`}<span>${esc(i.title)}<br><small>${s}${i.date?' · '+i.date:''}</small></span></span><span><button onclick="editItem('${i.id}')">Editar</button> <button onclick="del('${i.id}')">Apagar</button></span></li>`}
+  $('list').innerHTML=h;
+  window._npub=Object.keys(items).length;
+  $('plist').innerHTML=(await(await fetch('/api/posts')).json()).map(p=>
+    {posts[p.id]=p;$('r_pub').textContent=(window._npub||0)+Object.keys(posts).length;const c=p.cover||(p.media_type==='image'?p.file:'');return `<li><span>${c?`<img class=th src="/media/${c}" loading=lazy alt="">`:`<i class=th>❝</i>`}<span>${esc(p.title)}${p.music?' ♪':''}${p.audio?' 🎙':''}<br><small>${p.date}</small></span></span><span><button onclick="editPost('${p.id}')">Editar</button> <button onclick="delPost('${p.id}')">Apagar</button></span></li>`}).join('')}
+function editPost(id){const p=posts[id];cancelPost();editP=id;
+  for(const k of ['title','title_en','text','text_en'])$('p_'+k).value=p[k]||'';
+  $('p_url').value=p.url||'';$('p_type').value=p.media_type;ptype();
+  $('p_curfile').hidden=!p.file;$('p_remcover').hidden=!p.cover;
+  if(p.audio){$('p_curaudio').hidden=false;$('p_curplay').src='/media/'+p.audio}
+  if(p.music){$('p_curmusic').hidden=false;$('p_curmusicplay').src='/media/'+p.music}
+  $('p_head').textContent='Editar: '+p.title;$('p_btn').textContent='Guardar alterações';$('p_cancel').hidden=false;$('pmsg').textContent='';
+  openForm('post')}
+function cancelPost(keepOpen){editP=null;if(!keepOpen)$('form_post').hidden=true;
+  for(const k of ['title','title_en','text','text_en','url','file','cover','music'])$('p_'+k).value='';clearAudio();
+  $('p_type').value='none';ptype();$('p_curfile').hidden=$('p_remcover').hidden=$('p_curaudio').hidden=true;
+  $('p_rmcover').checked=$('p_rmaudio').checked=$('p_rmmusic').checked=false;$('p_curplay').removeAttribute('src');
+  $('p_curmusic').hidden=true;$('p_curmusicplay').removeAttribute('src');
+  $('p_head').textContent='Nova opinião';$('p_btn').textContent='Publicar opinião';$('p_cancel').hidden=true}
+function ptype(){const t=$('p_type').value;
+  $('p_filebox').hidden=!(t==='image'||t==='video');$('p_urlbox').hidden=!(t==='video'||t==='link');$('p_coverbox').hidden=!(t==='video'||t==='link');
+  $('p_file').accept=t==='image'?'image/*':'video/*';
+  $('p_urlhint').textContent=t==='video'?'Carrega um ficheiro acima OU cola um link do YouTube/Vimeo.':'Notícia, artigo, Spotify, YouTube… (YouTube/Spotify aparecem com player).'}
+let recorder=null,recBlob=null;
+async function rec(){
+  if(recorder){recorder.stop();return}
+  let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:true})}
+  catch(e){$('pmsg').textContent='Sem acesso ao microfone (o browser só deixa gravar em https ou localhost).';return}
+  const chunks=[];recorder=new MediaRecorder(stream);
+  recorder.ondataavailable=e=>chunks.push(e.data);
+  recorder.onstop=()=>{stream.getTracks().forEach(t=>t.stop());
+    recBlob=new Blob(chunks,{type:recorder.mimeType});recorder=null;$('p_audio').value='';
+    $('p_play').src=URL.createObjectURL(recBlob);$('p_play').hidden=false;$('p_rec').textContent='● Gravar de novo'};
+  recorder.start();$('p_rec').textContent='■ Parar gravação'}
+function clearAudio(){recBlob=null;$('p_audio').value='';$('p_play').hidden=true;$('p_play').removeAttribute('src');$('p_rec').textContent='● Gravar'}
+function publishPost(){
+  if(recorder){$('pmsg').textContent='Pára a gravação primeiro.';return}
+  const fd=new FormData(),t=$('p_type').value;
+  for(const k of ['title','title_en','text','text_en','url'])fd.append(k==='url'?'media_url':k,$('p_'+k).value);
+  fd.append('media_type',t);
+  if($('p_rmcover').checked)fd.append('remove_cover','1');
+  if($('p_rmaudio').checked)fd.append('remove_audio','1');
+  if($('p_rmmusic').checked)fd.append('remove_music','1');
+  if($('p_music').files[0])fd.append('music',$('p_music').files[0]);
+  if($('p_file').files[0]&&(t==='image'||t==='video'))fd.append('media_file',$('p_file').files[0]);
+  if($('p_cover').files[0]&&(t==='video'||t==='link'))fd.append('cover',$('p_cover').files[0]);
+  if(recBlob){const ty=recBlob.type;fd.append('audio',recBlob,'gravacao.'+(ty.includes('ogg')?'ogg':ty.includes('mp4')?'m4a':'webm'))}
+  else if($('p_audio').files[0])fd.append('audio',$('p_audio').files[0]);
+  const x=new XMLHttpRequest();x.open(editP?'PUT':'POST',editP?'/api/posts/'+editP:'/api/posts');
+  x.upload.onprogress=e=>$('pmsg').textContent='A enviar '+Math.round(e.loaded/e.total*100)+'%';
+  x.onload=()=>{if(x.status<300){const ok=editP?'Alterações guardadas ✓':'Opinião publicada ✓';cancelPost();refresh();toast(ok)}
+    else $('pmsg').textContent='Erro: '+x.responseText};
+  x.onerror=()=>$('pmsg').textContent='Erro de ligação.';
+  x.send(fd)}
+async function delPost(id){if(confirm('Apagar esta opinião?')){if(editP===id)cancelPost();await fetch('/api/posts/'+id,{method:'DELETE'});refresh()}}
+function toast(t){let e=$('toast');if(!e){e=document.createElement('div');e.id='toast';document.body.appendChild(e)}e.textContent=t;e.className='on';clearTimeout(e._t);e._t=setTimeout(()=>e.className='',2600)}
 async function saveSite(){
-  await fetch('/api/site',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('name').value,intro:$('intro').value,intro_en:$('intro_en').value})});
-  $('msg').textContent='Guardado.'}
+  await fetch('/api/site',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('name').value,intro:$('intro').value,intro_en:$('intro_en').value,instagram:$('instagram').value,facebook:$('facebook').value})});
+  toast('Perfil guardado ✓')}
 async function savePhoto(){const f=$('photo').files[0];if(!f){$('msg').textContent='Escolhe uma imagem.';return}
   const fd=new FormData();fd.append('file',f);
   const r=await fetch('/api/photo',{method:'POST',body:fd});$('msg').textContent=r.ok?'Foto guardada.':'Erro: '+await r.text()}
 async function delPhoto(){await fetch('/api/photo',{method:'DELETE'});$('msg').textContent='Foto removida.'}
+let items={},posts={},editI=null,editP=null;
+function openForm(which){showTab('publicar');
+  if(which==='item'){if(!editI)cancelItem(true);$('form_post').hidden=true;$('form_item').hidden=false;$('form_item').scrollIntoView({behavior:'smooth'});setTimeout(()=>$('title').focus(),300)}
+  else{if(!editP)cancelPost(true);$('form_item').hidden=true;$('form_post').hidden=false;$('form_post').scrollIntoView({behavior:'smooth'});setTimeout(()=>$('p_title').focus(),300)}}
+function editItem(id){const i=items[id];editI=id;
+  $('sec').value=i.section;$('title').value=i.title;$('title_en').value=i.title_en||'';$('file').value='';$('itext').value=i.text||'';$('itext_en').value=i.text_en||'';$('i_rmfile').hidden=!i.file;$('i_rm').checked=false;$('i_audio').value='';$('i_rmaudio').checked=false;$('i_curaudio').hidden=!i.audio;if(i.audio)$('i_curplay').src='/media/'+i.audio;else $('i_curplay').removeAttribute('src');
+  $('i_head').textContent='Editar: '+i.title;$('i_editing').hidden=false;$('i_btn').textContent='Guardar alterações';$('i_cancel').hidden=false;$('msg').textContent='';
+  openForm('item')}
+function cancelItem(keepOpen){editI=null;if(!keepOpen)$('form_item').hidden=true;$('file').value='';$('title').value='';$('title_en').value='';$('itext').value='';$('itext_en').value='';$('i_rmfile').hidden=true;$('i_audio').value='';$('i_rmaudio').checked=false;$('i_curaudio').hidden=true;$('i_curplay').removeAttribute('src');
+  $('i_head').textContent='Nova obra';$('i_editing').hidden=true;$('i_btn').textContent='Publicar';$('i_cancel').hidden=true}
 function upload(){
-  const f=$('file').files[0];if(!f){$('msg').textContent='Escolhe um ficheiro.';return}
-  const fd=new FormData();fd.append('section',$('sec').value);fd.append('title',$('title').value);fd.append('title_en',$('title_en').value);fd.append('file',f);
-  const x=new XMLHttpRequest();x.open('POST','/api/items');
+  const f=$('file').files[0],au=$('i_audio').files[0];if(!f&&!au&&!editI&&!$('itext').value.trim()){$('msg').textContent='Escolhe um ficheiro, um áudio ou escreve o texto.';return}
+  const fd=new FormData();fd.append('section',$('sec').value);fd.append('title',$('title').value);fd.append('title_en',$('title_en').value);
+  fd.append('text',$('itext').value);fd.append('text_en',$('itext_en').value);if($('i_rm').checked)fd.append('remove_file','1');if(f)fd.append('file',f);if(au)fd.append('audio',au);if($('i_rmaudio').checked)fd.append('remove_audio','1');
+  const x=new XMLHttpRequest();x.open(editI?'PUT':'POST',editI?'/api/items/'+editI:'/api/items');
   x.upload.onprogress=e=>$('msg').textContent='A enviar '+Math.round(e.loaded/e.total*100)+'%';
-  x.onload=()=>{$('msg').textContent=x.status<300?'Publicado.':'Erro: '+x.responseText;$('file').value='';$('title').value='';$('title_en').value='';refresh()};
+  x.onload=()=>{if(x.status<300){const ok=editI?'Alterações guardadas ✓':'Publicado ✓';cancelItem();refresh();toast(ok)}else $('msg').textContent='Erro: '+x.responseText};
+  x.onerror=()=>$('msg').textContent='Erro de ligação.';
   x.send(fd)}
-async function del(id){if(confirm('Apagar este item?')){await fetch('/api/items/'+id,{method:'DELETE'});refresh()}}
-refresh()
+async function del(id){if(confirm('Apagar este item?')){if(editI===id)cancelItem();await fetch('/api/items/'+id,{method:'DELETE'});refresh()}}
+const ptName=p=>{p=p.replace(/^\//,'');if(!p)return 'início';const[a,b]=p.split('/');
+  if(a==='opinioes'&&b){const x=Object.values(posts).find(x=>x.id===b);return 'opinião: '+(x?x.title:b)}
+  if(b&&items[b])return {musica:'música',escrita:'escrita',podcast:'podcast'}[a]+': '+items[b].title;return {opinioes:'opiniões',musica:'música'}[a]||a};
+const rows=(id,list,f)=>$(id).innerHTML=list.length?list.map(f).join(''):'<tr><td><small>ainda sem dados</small></td></tr>';
+async function loadVisits(){
+  const r=await fetch('/api/visits'+($('hide_me').checked?'?hide_me=1':''));if(!r.ok)return;const v=await r.json();
+  $('r_today').textContent=v.today.people;$('r_week').textContent=v.week.people;
+  rows('r_people',v.recent.slice(0,6),x=>`<tr><td>${esc(x.who||(x.vn?'Visitante nº '+x.vn:ptName(x.path)))}<br><small>${x.geo?esc(x.geo)+' · ':''}${esc(x.dev)}</small></td><td class=n><small>${x.t.slice(5,16).replace('T',' ')}</small></td></tr>`);
+  for(const k of ['today','week','month'])$('v_'+k).innerHTML=`${v[k].people} <small>(${v[k].views})</small>`;
+  const max=Math.max(1,...v.daily.map(d=>d[1])),tip=$('tip'),fd=d=>new Date(d+'T12:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short'});
+  $('v_max').textContent='máximo: '+max+' por dia';$('v_from').textContent=fd(v.daily[0][0]);
+  $('chart').innerHTML=v.daily.map(([d,n])=>`<div data-t="${fd(d)}: ${n} ${n===1?'página vista':'páginas vistas'}"><i style="height:${n/max*100}%"></i></div>`).join('');
+  $('chart').querySelectorAll('div').forEach(b=>{b.onmousemove=e=>{tip.hidden=false;tip.textContent=b.dataset.t;tip.style.left=e.clientX+12+'px';tip.style.top=e.clientY-30+'px'};b.onmouseleave=()=>tip.hidden=true});
+  rows('v_daily',v.daily.slice().reverse(),([d,n])=>`<tr><td>${fd(d)}</td><td class=n>${n}</td></tr>`);
+  rows('v_pages',v.pages,([p,n])=>`<tr><td>${esc(ptName(p))}</td><td class=n>${n}</td></tr>`);
+  rows('v_refs',v.refs,([p,n])=>`<tr><td>${esc(p)}</td><td class=n>${n}</td></tr>`);
+  rows('v_countries',v.countries,([p,n])=>`<tr><td>${esc(p)}</td><td class=n>${n}</td></tr>`);
+  rows('v_cities',v.cities,([p,n])=>`<tr><td>${esc(p)}</td><td class=n>${n}</td></tr>`);
+  rows('v_dev',v.devices,([p,n])=>`<tr><td>${esc(p)}</td><td class=n>${n}</td></tr>`);
+  renderMe(v);renderSessions(v.sessions);loadLinks();
+}
+
+try{$('notrack').checked=!!localStorage.getItem('noTrack');$('hide_me').checked=!!localStorage.getItem('hideMe')}catch(e){}
+let myVid='';try{myVid=localStorage.getItem('vid')||''}catch(e){}
+let _v=null;
+function renderMe(v){_v=v;const me=v.visitors.find(x=>x.vid===myVid),lv=v.labels['vid:'+myVid]||{},li=v.you.label||{};
+  $('me_info').innerHTML=(myVid?`Este browser é o <b>${me?'Visitante nº '+me.n:'(ainda sem visitas registadas)'}</b>${lv.me?' <span class=tagme>marcado como tu</span>':''}`:'Este browser ainda não visitou o site.')
+   +`<br><small>O teu IP agora: ${esc(v.you.ip)}${li.me?' <span class=tagme>marcado como teu</span>':''} — se estás em casa, marca-o para reconhecer também as visitas antigas.</small>`}
+async function markMe(kind){const id=kind==='vid'?myVid:_v.you.ip;if(!id){alert('Abre primeiro o site neste browser.');return}
+  await fetch('/api/labels',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,id,name:'Eu',me:true})});loadVisits()}
+async function nameVisitor(kind,id,cur){const n=prompt('Quem é? (escreve "eu" se fores tu; vazio para remover o nome)',cur||'');if(n===null)return;
+  const me=/^eu$/i.test(n.trim());
+  await fetch('/api/labels',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,id,name:me?'Eu':n,me})});$('prof').hidden=true;loadVisits()}
+function renderSessions(ss){
+  const tb=$('v_sessions');
+  tb.innerHTML=ss.length?ss.map(x=>{const k=x.vid?'vid':'ip',id=x.vid||x.ip,mins=Math.round((new Date(x.end)-new Date(x.start))/60000);
+    return `<tr class="${x.me?'me':''}"><td class=c-when>${x.start.slice(8,10)}/${x.start.slice(5,7)} ${x.start.slice(11,16)}<br><small>${mins?mins+' min':'1 página'}</small></td>`
+    +`<td class=c-who><button class="who ${x.named?'':'anon'}" data-key="${esc(x.key)}" onclick="openProfile(this.dataset.key)">${esc(x.me?'Tu':x.who)}</button>${x.me?'<span class=tagme>tu</span>':''}<button title="dar nome" onclick="nameVisitor('${k}','${esc(id)}','${esc(x.named&&!x.me?x.who:'')}')">✎</button><br><small>${esc(x.ip)}</small></td>`
+    +`<td class=c-where data-l="Onde">${esc(x.geo||'—')}<br><small>${esc(x.isp||'')}${x.rdns?'<br>'+esc(x.rdns):''}</small></td>`
+    +`<td class=c-dev data-l="Aparelho">${esc(x.model||x.dev.split(' · ')[0])}<br><small>${esc(x.model?x.dev:x.dev.split(' · ')[1]||'')}${x.screen?' · '+esc(x.screen.split('@')[0]):''}${x.lang?' · '+esc(x.lang):''}</small></td>`
+    +`<td class=c-src data-l="Veio de">${esc(x.source)}</td><td class="pg c-pages" data-l="Viu" title="${esc(x.pages.join(' → '))}">${x.pages.slice(0,4).map(esc).join(' → ')}${x.pages.length>4?` <small>(+${x.pages.length-4})</small>`:''}</td></tr>`}).join(''):'<tr><td colspan=6><small>Ainda sem visitas.</small></td></tr>'}
+function openProfile(key){
+  const ss=(_v.sessions||[]).filter(x=>x.key===key);if(!ss.length)return;
+  const f=ss[ss.length-1],l=ss[0],uniq=a=>[...new Set(a.filter(Boolean))],mins=ss.reduce((t,x)=>t+Math.max(1,Math.round((new Date(x.end)-new Date(x.start))/60000)),0);
+  const pages=uniq(ss.flatMap(x=>x.pages)),k=f.vid?'vid':'ip',id=f.vid||f.ip,fmt=t=>t.slice(8,10)+'/'+t.slice(5,7)+' '+t.slice(11,16);
+  const fact=(t,v)=>v&&v.length!==0?`<div><b>${t}</b><span>${Array.isArray(v)?v.map(esc).join(', '):esc(v)}</span></div>`:'';
+  $('prof').innerHTML=`<div class=pbox><button class=x onclick="$('prof').hidden=true">×</button><h3>${esc(l.me?'Tu':l.who)}</h3>`
+   +`<small>${f.vid?'Browser nº '+(l.vn||'?'):'Sem número de browser (visita antiga) — identificado pelo IP e aparelho'}</small>`
+   +`<div class=mebtns style="margin-top:10px"><button onclick="nameVisitor('${k}','${esc(id)}','${esc(l.named&&!l.me?l.who:'')}')">✎ Dar nome</button><button onclick="markMeId('${k}','${esc(id)}')">Isto sou eu</button></div>`
+   +`<div class=facts>`+fact('Primeira visita',fmt(f.start))+fact('Última visita',fmt(l.end))+fact('Visitas',String(ss.length))+fact('Tempo no site',mins+' min')
+   +fact('Páginas diferentes',String(pages.length))+fact('Cidades',uniq(ss.map(x=>x.geo)))+fact('Operador',uniq(ss.map(x=>x.isp)))+fact('Rede (DNS)',uniq(ss.map(x=>x.rdns)))
+   +fact('IPs',uniq(ss.map(x=>x.ip)))+fact('Aparelho',uniq(ss.map(x=>x.model||x.dev)))+fact('Browser',uniq(ss.map(x=>x.dev)))+fact('Ecrã',uniq(ss.map(x=>x.screen)))
+   +fact('Idioma',uniq(ss.map(x=>x.lang)))+fact('Fuso horário',uniq(ss.map(x=>x.tz)))+fact('Veio de',uniq(ss.map(x=>x.source)))+`</div>`
+   +`<p class=ct>Páginas que viu</p><small>${pages.map(esc).join(' · ')}</small>`
+   +`<p class=ct>Todas as visitas</p><table>${ss.map(x=>`<tr><td class=n>${fmt(x.start)}</td><td>${esc(x.source)}<br><small>${esc(x.geo||'')} · ${esc(x.model||x.dev)}</small></td><td><small>${x.pages.map(esc).join(' → ')}</small></td></tr>`).join('')}</table></div>`;
+  $('prof').hidden=false;$('prof').onclick=e=>{if(e.target.id==='prof')$('prof').hidden=true}}
+async function markMeId(kind,id){await fetch('/api/labels',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,id,name:'Eu',me:true})});$('prof').hidden=true;loadVisits()}
+let cData={comments:[],pages:[]},cFilter=null;
+async function loadComments(){
+  const r=await fetch('/api/comments/all');if(!r.ok)return;cData=await r.json();const cs=cData.comments;
+  $('r_cm').textContent=cs.length;
+  const fresh=cs.filter(c=>c.t>(localStorage.getItem('cmSeen')||'')).length;$('t_cm').textContent=fresh||'';
+  $('r_comments').innerHTML=cs.length?cs.slice(0,4).map(c=>`<div class=cm><b>${esc(c.name)}</b>${c.ig?' <small>@'+esc(c.ig)+'</small>':''} <small>em ${esc(c.post_title)}</small><p>${esc(c.text.slice(0,160))}${c.text.length>160?'…':''}</p></div>`).join(''):'<small>Ainda sem comentários.</small>';
+  $('c_pages').innerHTML=cData.pages.map(pg=>`<tr style="cursor:pointer" onclick="cFilter='${esc(pg.page)}';renderComments()"><td>${esc(pg.title)}</td><td>${esc(pg.section)}</td><td class=n>${pg.count||'<small>0</small>'}</td></tr>`).join('');
+  window._cs=Object.fromEntries(cs.map(c=>[c.id,c]));renderComments();loadUsers()}
+function renderComments(){
+  const cs=cData.comments.filter(c=>!cFilter||c.page===cFilter),pg=cData.pages.find(x=>x.page===cFilter);
+  $('c_head').textContent=cFilter?'Comentários em: '+(pg?pg.title:cFilter):'Todos os comentários';$('c_filter').hidden=!cFilter;
+  $('clist').innerHTML=cs.length?cs.map(c=>`<div class=cm><small>${c.t.slice(0,16).replace('T',' ')} · ${esc(c.section)}: <a href="/${esc(c.page)}" target=_blank style="color:inherit">${esc(c.post_title)}</a></small><br>
+    <b>${esc(c.name)}</b>${c.ig?` · <a href="https://www.instagram.com/${encodeURIComponent(c.ig)}/" target=_blank rel=noopener style="color:#7ea3c8">@${esc(c.ig)}</a>`:''}
+    <small> · ${esc(c.ip||'')}${c.geo?' · 📍 '+esc(c.geo):''}</small><p>${esc(c.text)}</p>
+    ${c.reply?`<div class=rp>A tua resposta: ${esc(c.reply)}</div>`:''}
+    <button onclick="replyC('${c.id}')">${c.reply?'Editar resposta':'Responder'}</button><button onclick="delC('${c.id}')">Apagar</button></div>`).join(''):'<p><small>Ainda sem comentários'+(cFilter?' nesta página':'')+'.</small></p>';
+  if(cFilter)$('c_head').scrollIntoView({behavior:'smooth'})}
+async function loadUsers(){const r=await fetch('/api/users');if(!r.ok)return;const us=await r.json();
+  const prov={facebook:'Facebook',google:'Google',nome:'só nome'};
+  $('u_list').innerHTML=us.length?us.map(u=>`<tr><td style="display:flex;gap:8px;align-items:center">${u.picture?`<img src="${esc(u.picture)}" referrerpolicy=no-referrer style="width:30px;height:30px;border-radius:50%;object-fit:cover">`:''}<span><b>${esc(u.name)}</b><br><small>${esc(prov[u.provider]||u.provider)}${u.geo?' · '+esc(u.geo):''}</small></span></td><td>${u.ig?`<a href="https://www.instagram.com/${encodeURIComponent(u.ig)}/" target=_blank rel=noopener style="color:#7ea3c8">@${esc(u.ig)}</a>`:'—'}</td>`
+    +`<td>${u.email?`<a href="mailto:${esc(u.email)}" style="color:inherit">${esc(u.email)}</a>`:'—'}</td><td><small>${u.created.slice(0,10)}</small></td><td class=n>${u.comments}</td><td class=n>${u.views}</td>`
+    +`<td><small>${u.last?u.last.slice(5,16).replace('T',' '):'—'}</small></td><td><button onclick="delUser('${u.uid}','${esc(u.name)}')">apagar</button></td></tr>`).join(''):'<tr><td colspan=8><small>Ainda ninguém se registou.</small></td></tr>'}
+async function delUser(uid,name){if(confirm('Apagar o registo de '+name+'? (os comentários ficam; a pessoa terá de se registar outra vez para comentar)')){await fetch('/api/users/'+uid,{method:'DELETE'});loadUsers()}}
+async function replyC(id){const r=prompt('A tua resposta (vazio para remover):',(_cs[id]||{}).reply||'');if(r===null)return;
+  await fetch('/api/comments/'+id+'/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reply:r})});loadComments()}
+async function delC(id){if(confirm('Apagar este comentário?')){await fetch('/api/comments/'+id,{method:'DELETE'});loadComments()}}
+async function loadLinks(){const r=await fetch('/api/links');if(!r.ok)return;const ls=await r.json();
+  $('l_list').innerHTML=ls.map(l=>{const u=location.origin+'/?de='+l.code;return `<tr><td><b style="font-weight:500">${esc(l.name)}</b><br><small>${esc(u)}</small></td><td class=n>${l.opened?'aberto '+l.opened+'×':'ainda não abriu'}<br><button style="width:auto;padding:2px 8px" onclick="navigator.clipboard.writeText('${u}');this.textContent='copiado ✓'">copiar</button><button style="width:auto;padding:2px 8px" onclick="delLink('${l.code}')">apagar</button></td></tr>`}).join('')}
+async function addLink(){const n=$('l_name').value.trim();if(!n)return;
+  const r=await fetch('/api/links',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n})});
+  if(r.ok){const {code}=await r.json();const u=location.origin+'/?de='+code;try{await navigator.clipboard.writeText(u)}catch(e){}$('l_name').value='';loadLinks();alert('Link para '+n+' criado e copiado:\n'+u)}}
+async function delLink(code){if(confirm('Apagar este link? (as visitas já registadas mantêm o nome)')){await fetch('/api/links/'+code,{method:'DELETE'});loadLinks()}}
+async function loadNotify(){const r=await fetch('/api/notify');if(!r.ok)return;const c=await r.json();
+  $('n_topic').textContent=c.topic;$('n_visits').checked=c.visits;
+  $('n_ntfy').checked=c.ntfy_on!==false;$('n_wa').checked=!!c.wa_on;$('n_phone').value=c.wa_phone||'';$('n_key').value=c.wa_key||''}
+async function saveNotify(newTopic){
+  const r=await fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visits:$('n_visits').checked,ntfy_on:$('n_ntfy').checked,wa_on:$('n_wa').checked,wa_phone:$('n_phone').value,wa_key:$('n_key').value,new_topic:!!newTopic})});
+  const c=await r.json();$('n_topic').textContent=c.topic;$('nmsg').textContent=newTopic?'Canal novo criado. Subscreve-o na app.':'Guardado.'}
+async function testWA(){await saveNotify();$('nmsg').textContent='A enviar para o WhatsApp…';
+  const r=await (await fetch('/api/notify/test-whatsapp',{method:'POST'})).json();
+  $('nmsg').textContent=r.ok?'Enviado ✓ — vê o WhatsApp.':'Não foi possível: '+r.msg}
+async function loadPush(){const r=await fetch('/api/push/key');if(!r.ok)return;const d=await r.json();window._vapid=d.key;
+  $('n_devices').innerHTML=d.devices.map(x=>`<li><span>📱 ${esc(x.name||'aparelho')}<br><small>ativado ${esc(x.added)}</small></span><button onclick="removePush('${x.id}')">Remover</button></li>`).join('');
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)){$('n_enable').disabled=true;$('n_enable').textContent='Este browser não suporta notificações (no iPhone, adiciona ao ecrã principal primeiro)'}}
+function urlB64(s){const p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0))}
+function deviceName(){const u=navigator.userAgent;return (/iPhone/.test(u)?'iPhone':/iPad/.test(u)?'iPad':/Android/.test(u)?'Android':/Mac/.test(u)?'Mac':/Windows/.test(u)?'Windows':'Computador')+' · '+(/Edg\//.test(u)?'Edge':/Firefox/.test(u)?'Firefox':/Chrome/.test(u)?'Chrome':/Safari/.test(u)?'Safari':'browser')}
+async function enablePush(){
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){$('nmsg').textContent='Não deste permissão. Ativa as notificações para este site nas definições do browser.';return}
+    const reg=await navigator.serviceWorker.register('/sw.js',{scope:'/'});await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(window._vapid)});
+    const r=await fetch('/api/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sub:sub.toJSON(),name:deviceName()})});
+    if(!r.ok)throw new Error(await r.text());
+    await fetch('/api/notify/test',{method:'POST'});
+    $('nmsg').textContent='Ativado ✓ Enviei-te uma notificação de teste — deve aparecer em segundos.';loadPush()}
+  catch(e){$('nmsg').textContent='Não foi possível ativar: '+e.message}}
+async function removePush(id){if(!confirm('Deixar de enviar notificações para este aparelho?'))return;
+  await fetch('/api/push/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});loadPush()}
+async function testNotify(){await fetch('/api/notify/test',{method:'POST'});$('nmsg').textContent='Teste enviado. Deve chegar ao telemóvel em segundos.'}
+// separadores
+const OLD={notif:'definicoes',notificacoes:'definicoes',conteudos:'publicar',coments:'comentarios',sobre:'definicoes',i_head:'publicar',p_head:'publicar'};
+function showTab(t){t=OLD[t]||t;if(!document.querySelector(`.tab[data-tab="${t}"]`))t='resumo';
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.tab===t));
+  document.querySelectorAll('.tabs a').forEach(a=>a.classList.toggle('on',a.dataset.t===t));
+  if(location.hash!=='#'+t)history.replaceState(null,'','#'+t);
+  if(t==='comentarios'){try{localStorage.setItem('cmSeen',new Date().toISOString().slice(0,19))}catch(e){}$('t_cm').textContent=''}
+  scrollTo(0,0)}
+onhashchange=()=>showTab(location.hash.slice(1));
+showTab(location.hash.slice(1)||'resumo');
+refresh().then(()=>{$('r_pub').textContent=Object.keys(items).length+Object.keys(posts).length}).then(loadVisits).then(loadComments).then(loadNotify).then(loadPush)
 </script></html>

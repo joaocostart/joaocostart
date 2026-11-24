@@ -1,0 +1,17 @@
+__pycache__/
+# notificações push: chave privada e aparelhos subscritos
+data/vapid.pem
+data/push.json
+# segredos (login Google/Facebook, canal de notificações)
+data/oauth.json
+data/notify.json
+# dados de visitantes e utilizadores (privados)
+data/users.json
+data/comments.json
+data/visits.jsonl
+data/labels.json
+data/links.json
+data/rdns.json
+# gerados automaticamente
+data/translations.json
+data/geo/
