@@ -31,7 +31,7 @@
       <h2 style="margin:0 0 4px;font:600 22px Georgia,serif">${setup ? "Criar o acesso ao admin" : "Entrar no admin"}</h2>
       <p style="margin:0;color:#c66">${msg || ""}</p>
       <label>Utilizador<input name=user required autocomplete=username autocapitalize=none style="${inp}"></label>
-      ${setup ? pwField("pw", "Password (mínimo 8 caracteres)") + pwField("pw2", "Repete a password") : pwField("pw", "Password")}
+      ${pwField("pw", setup ? "Password (mínimo 8 caracteres)" : "Password")}
       <button style="padding:10px;font-size:16px">${setup ? "Criar e entrar" : "Entrar"}</button></form>`;
     document.body.appendChild(d);
     d.querySelector("input").focus();
@@ -40,7 +40,6 @@
       e.preventDefault();
       const f = e.target, c = { user: f.user.value.trim(), pw: f.pw.value };
       if (setup) {
-        if (f.pw.value !== f.pw2.value) return say("As passwords não são iguais.");
         const r = await realFetch(API + "/api/setup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(c) }).catch(() => ({}));
         if (!r.ok) return say(r.text ? await r.text() : "Sem ligação ao servidor (api.joaocostart.com).");
       }
@@ -163,8 +162,10 @@
   }
   async function saveItem(fd, iid, prog) {
     const g = (k) => String(fd.get(k) || "");
-    const sec = g("section"), f = fd.get("file"), au = fd.get("audio");
+    const sec = g("section"), txt = sec === "escrita"; // escritas: só texto
+    const f = txt ? null : fd.get("file"), au = txt ? null : fd.get("audio");
     const ext = isFile(f) ? extOf(f) : "", aext = isFile(au) ? extOf(au) : "";
+    if (txt && !g("text").trim()) return err("Escreve o texto da escrita");
     if (aext && !AUDIO_EXT.has(aext)) return err("O áudio tem de ser mp3, m4a, ogg, wav, aac, opus ou flac");
     if (!SECTIONS.includes(sec) || (ext && !KINDS[ext])) return err(iid ? "Secção ou formato inválido" : "Escolhe a secção e um ficheiro (imagem, vídeo, áudio) ou escreve o texto");
     const items = await readJSON("data/items.json", []);
@@ -184,6 +185,7 @@
       item = items.find((i) => i.id === iid);
       if (!item) return err("Item não encontrado", 404);
       Object.assign(item, fields);
+      if (txt) { for (const k of ["file", "audio"]) if (item[k]) { files[UP(item[k])] = null; item[k] = ""; } item.kind = "text"; }
       if (aext) { if (item.audio) files[UP(item.audio)] = null; item.audio = newName(aext); files[UP(item.audio)] = au; }
       else if (g("remove_audio") === "1" && item.audio) { files[UP(item.audio)] = null; item.audio = ""; }
       if (g("remove_file") === "1" && (item.text || item.audio) && !ext && item.file) { files[UP(item.file)] = null; item.file = ""; item.kind = "text"; }

@@ -24,3 +24,5 @@ docs/
 worker/node_modules/
 worker/.wrangler/
 .dev.vars
+# sons gerados no GitHub Actions (guitar_samples.sh)
+static/guitar/

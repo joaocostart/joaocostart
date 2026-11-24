@@ -67,6 +67,17 @@ jobs:
           key: translations-${{ github.run_id }}
           restore-keys: translations-
 
+      # sons de guitarra da página Teoria (gerados uma vez e guardados em cache)
+      - uses: actions/cache@v4
+        if: steps.decide.outputs.publish == 'true'
+        with:
+          path: static/guitar
+          key: guitar-v1-${{ hashFiles('guitar_samples.sh') }}
+
+      - name: Sons de guitarra
+        if: steps.decide.outputs.publish == 'true'
+        run: bash guitar_samples.sh static/guitar
+
       - name: Gerar o site
         if: steps.decide.outputs.publish == 'true'
         run: python build_static.py

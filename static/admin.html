@@ -107,12 +107,12 @@ td a{color:#e4e7e3}summary{cursor:pointer;color:#858d89;font-size:14px;margin-to
 <div id=form_item class=panel hidden>
 <div class=panelhead><h3 id=i_head>Nova obra</h3><button class=close onclick=cancelItem() title="fechar">×</button></div>
 <p id=i_editing hidden><small>A editar. O ficheiro atual mantém-se se não escolheres outro.</small></p>
-<div class=row2><label class=f>Secção<select id=sec><option value=musica>Música</option><option value=escrita>Escrita</option><option value=podcast>Podcast</option></select></label>
+<div class=row2><label class=f>Secção<select id=sec onchange=secMode()><option value=musica>Música</option><option value=escrita>Escrita</option><option value=podcast>Podcast</option></select></label>
 <label class=f>Título<input id=title></label></div>
 <label class=f>Texto <small>— o poema, a letra ou uma descrição (a Google lê texto, não imagens)</small><textarea id=itext rows=9></textarea></label>
-<label class=f>Ficheiro <small>— imagem, vídeo ou áudio (opcional se escreveres o texto)</small><input id=file type=file></label>
+<label class=f id=i_filebox>Ficheiro <small>— imagem, vídeo ou áudio (opcional se escreveres o texto)</small><input id=file type=file></label>
 <label id=i_rmfile hidden class=chk><input type=checkbox id=i_rm> remover o ficheiro atual</label>
-<label class=f>Música / áudio <small>— opcional; mp3, m4a, wav, ogg, flac… aparece por baixo da media para ouvir</small><input id=i_audio type=file accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac,.aac,.opus"></label>
+<label class=f id=i_audiobox>Música / áudio <small>— opcional; mp3, m4a, wav, ogg, flac… aparece por baixo da media para ouvir</small><input id=i_audio type=file accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac,.aac,.opus"></label>
 <div id=i_curaudio hidden><small>Áudio atual (mantém-se se não escolheres outro):</small><audio id=i_curplay controls preload=none></audio><label class=chk><input type=checkbox id=i_rmaudio> remover o áudio</label></div>
 <details class=en><summary>Inglês: traduzido automaticamente — só preenchas para corrigir a tradução</summary><label class=f>Title<input id=title_en></label><label class=f>Text<textarea id=itext_en rows=4></textarea></label></details>
 <div class=actions><button id=i_btn class=primary onclick=upload()>Publicar</button><button id=i_cancel onclick=cancelItem() hidden>Cancelar</button><span id=msg class=msg></span></div>
@@ -281,11 +281,13 @@ function openForm(which){showTab('publicar');
   if(which==='item'){if(!editI)cancelItem(true);$('form_post').hidden=true;$('form_item').hidden=false;$('form_item').scrollIntoView({behavior:'smooth'});setTimeout(()=>$('title').focus(),300)}
   else{if(!editP)cancelPost(true);$('form_item').hidden=true;$('form_post').hidden=false;$('form_post').scrollIntoView({behavior:'smooth'});setTimeout(()=>$('p_title').focus(),300)}}
 function editItem(id){const i=items[id];editI=id;
-  $('sec').value=i.section;$('title').value=i.title;$('title_en').value=i.title_en||'';$('file').value='';$('itext').value=i.text||'';$('itext_en').value=i.text_en||'';$('i_rmfile').hidden=!i.file;$('i_rm').checked=false;$('i_audio').value='';$('i_rmaudio').checked=false;$('i_curaudio').hidden=!i.audio;if(i.audio)$('i_curplay').src='/media/'+i.audio;else $('i_curplay').removeAttribute('src');
+  $('sec').value=i.section;setTimeout(secMode);$('title').value=i.title;$('title_en').value=i.title_en||'';$('file').value='';$('itext').value=i.text||'';$('itext_en').value=i.text_en||'';$('i_rmfile').hidden=!i.file;$('i_rm').checked=false;$('i_audio').value='';$('i_rmaudio').checked=false;$('i_curaudio').hidden=!i.audio;if(i.audio)$('i_curplay').src='/media/'+i.audio;else $('i_curplay').removeAttribute('src');
   $('i_head').textContent='Editar: '+i.title;$('i_editing').hidden=false;$('i_btn').textContent='Guardar alterações';$('i_cancel').hidden=false;$('msg').textContent='';
   openForm('item')}
 function cancelItem(keepOpen){editI=null;if(!keepOpen)$('form_item').hidden=true;$('file').value='';$('title').value='';$('title_en').value='';$('itext').value='';$('itext_en').value='';$('i_rmfile').hidden=true;$('i_audio').value='';$('i_rmaudio').checked=false;$('i_curaudio').hidden=true;$('i_curplay').removeAttribute('src');
-  $('i_head').textContent='Nova obra';$('i_editing').hidden=true;$('i_btn').textContent='Publicar';$('i_cancel').hidden=true}
+  $('i_head').textContent='Nova obra';$('i_editing').hidden=true;$('i_btn').textContent='Publicar';$('i_cancel').hidden=true;secMode()}
+// Escrita = só texto (sem imagem nem áudio)
+function secMode(){const t=$('sec').value==='escrita';for(const k of ['i_filebox','i_audiobox','i_rmfile','i_curaudio'])$(k).style.display=t?'none':'';if(t){$('file').value='';$('i_audio').value=''}}
 function upload(){
   const f=$('file').files[0],au=$('i_audio').files[0];if(!f&&!au&&!editI&&!$('itext').value.trim()){$('msg').textContent='Escolhe um ficheiro, um áudio ou escreve o texto.';return}
   const fd=new FormData();fd.append('section',$('sec').value);fd.append('title',$('title').value);fd.append('title_en',$('title_en').value);
