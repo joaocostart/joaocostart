@@ -8,7 +8,7 @@ ficheiros, já com a tradução para inglês.
 Os comentários, registos, visitas e notificações vão ao Worker da Cloudflare
 (api.joaocostart.com, pasta worker/). O admin fica em joaocostart.com/admin.
 """
-import json, os, shutil, sys
+import hashlib, json, os, shutil, sys
 from pathlib import Path
 
 DOMAIN = "joaocostart.com"
@@ -69,7 +69,8 @@ def main():
     # admin: o mesmo admin.html, com o adaptador que grava no GitHub e fala com o Worker
     admin = (BASE / "static" / "admin.html").read_text("utf-8")
     i = admin.index("<script>")  # antes do script do admin
-    admin = admin[:i] + HEAD + '<script src="/s/admin-shim.js"></script>\n' + admin[i:]
+    v = hashlib.md5((BASE / "static" / "admin-shim.js").read_bytes()).hexdigest()[:10]  # versão nova = sem cache antiga
+    admin = admin[:i] + HEAD + f'<script src="/s/admin-shim.js?v={v}"></script>\n' + admin[i:]
     write("admin/index.html", admin)
     write("admin.webmanifest", json.dumps({
         "name": "Admin · " + s.get("name", "site"), "short_name": "Admin", "start_url": "/admin/", "scope": "/",
