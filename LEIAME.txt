@@ -3,7 +3,7 @@ SITE PESSOAL — GITHUB PAGES + CLOUDFLARE (sem servidor proprio)
 Como funciona:
   - joaocostart.com        -> GitHub Pages, gerado por build_static.py no GitHub Actions
                               (.github/workflows/pages.yml). Traducao para ingles incluida.
-  - joaocostart.com/admin  -> o admin. So pede a password (criada na 1.a entrada).
+  - joaocostart.com/admin  -> o admin. Entra-se com utilizador e password (criados na 1.a entrada).
                               O que publicas fica guardado no Worker; de 5 em 5 minutos o
                               GitHub Actions vai busca-lo (sync_content.py), guarda-o no
                               repositorio e publica o site. Aparece no site em 5-20 minutos.
@@ -18,10 +18,10 @@ translate.py, geo.py, webpush.py, static/ (site e admin), data/ (conteudos),
 worker/ (API). A pasta docs/ e gerada (nao vai para o git).
 
 ENTRAR NO ADMIN (joaocostart.com/admin)
-  Na 1.a vez pede para criares a password (minimo 8 caracteres). Depois, so a password.
+  Na 1.a vez pede para criares o utilizador e a password. Depois, entras com os dois.
   Se a esqueceres: no painel da Cloudflare -> Storage & databases -> D1 -> site -> Console:
     DELETE FROM kv WHERE k='admin_pw';
-  e volta a abrir o admin para criar uma nova.
+  e volta a abrir o admin para criar novos.
 
 WORKER (so quando mudares o codigo em worker/)
   cd worker

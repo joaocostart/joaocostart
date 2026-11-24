@@ -4,7 +4,7 @@
  *    o GitHub Actions copia-o para o repositório e publica o site de 5 em 5 minutos;
  *  - estatísticas de visitas e lista de comentários: calculadas aqui no browser;
  *  - o resto (comentários, utilizadores, etiquetas, links, notificações): Worker da Cloudflare.
- * Só precisa da password do admin.
+ * Entra-se com utilizador e password (criados na 1.ª entrada).
  */
 (() => {
   const API = window.API_BASE || "https://api.joaocostart.com";
@@ -16,8 +16,8 @@
   const realFetch = window.fetch.bind(window);
 
   // ---------- credenciais (guardadas só neste browser) ----------
-  const creds = () => { try { return JSON.parse(localStorage.getItem("adm") || "null"); } catch { return null; } };
-  const basic = (c) => "Basic " + btoa("admin:" + c.pw);
+  const creds = () => { try { const c = JSON.parse(localStorage.getItem("adm") || "null"); return c && c.user ? c : null; } catch { return null; } };
+  const basic = (c) => "Basic " + btoa(unescape(encodeURIComponent(c.user + ":" + c.pw)));
   function loginForm(msg, setup) {
     const cur = document.getElementById("adm-login");
     if (cur) { if (msg) cur.querySelector("p").textContent = msg; return; }
@@ -25,31 +25,32 @@
     const d = document.createElement("div");
     d.id = "adm-login";
     d.style.cssText = "position:fixed;inset:0;z-index:99999;background:#0f1112;color:#e8e6e1;font:16px system-ui,sans-serif;display:flex;align-items:center;justify-content:center";
-    const field = (name, label) => `<label>${label}<input name=${name} type=password required minlength=${setup ? 8 : 1} autocomplete=${setup ? "new-password" : "current-password"} style="width:100%;padding:10px;margin-top:4px"></label>`;
-    d.innerHTML = `<form style="width:min(420px,90vw);display:grid;gap:12px">
-      <h2 style="margin:0 0 4px;font:600 22px Georgia,serif">${setup ? "Criar a password do admin" : "Admin"}</h2>
+    const inp = "width:100%;padding:10px;margin-top:4px;box-sizing:border-box";
+    const pwField = (name, label) => `<label>${label}<input name=${name} type=password required minlength=${setup ? 8 : 1} autocomplete=${setup ? "new-password" : "current-password"} style="${inp}"></label>`;
+    d.innerHTML = `<form style="width:min(380px,90vw);display:grid;gap:12px">
+      <h2 style="margin:0 0 4px;font:600 22px Georgia,serif">${setup ? "Criar o acesso ao admin" : "Entrar no admin"}</h2>
       <p style="margin:0;color:#c66">${msg || ""}</p>
-      ${setup ? field("pw", "Nova password (mínimo 8 caracteres)") + field("pw2", "Repete a password") : field("pw", "Password")}
-      <button style="padding:10px;font-size:16px">${setup ? "Criar e entrar" : "Entrar"}</button>
-      <small style="color:#9a968e">Fica guardada só neste browser. Para sair: "sair deste browser" no fundo do admin.</small></form>`;
+      <label>Utilizador<input name=user required autocomplete=username autocapitalize=none style="${inp}"></label>
+      ${setup ? pwField("pw", "Password (mínimo 8 caracteres)") + pwField("pw2", "Repete a password") : pwField("pw", "Password")}
+      <button style="padding:10px;font-size:16px">${setup ? "Criar e entrar" : "Entrar"}</button></form>`;
     document.body.appendChild(d);
     d.querySelector("input").focus();
     const say = (t) => (d.querySelector("p").textContent = t);
     d.querySelector("form").onsubmit = async (e) => {
       e.preventDefault();
-      const f = e.target, c = { pw: f.pw.value };
+      const f = e.target, c = { user: f.user.value.trim(), pw: f.pw.value };
       if (setup) {
         if (f.pw.value !== f.pw2.value) return say("As passwords não são iguais.");
-        const r = await realFetch(API + "/api/setup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pw: c.pw }) }).catch(() => ({}));
+        const r = await realFetch(API + "/api/setup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(c) }).catch(() => ({}));
         if (!r.ok) return say(r.text ? await r.text() : "Sem ligação ao servidor (api.joaocostart.com).");
       }
       const r = await realFetch(API + "/api/check", { headers: { Authorization: basic(c) } }).catch(() => ({}));
-      if (!r.ok) return say(r.status === 401 ? "Password errada." : "Sem ligação ao servidor (api.joaocostart.com).");
+      if (!r.ok) return say(r.status === 401 ? "Utilizador ou password errados." : "Sem ligação ao servidor (api.joaocostart.com).");
       localStorage.setItem("adm", JSON.stringify(c));
       location.reload();
     };
   }
-  async function askLogin(msg) { // primeira vez de sempre: criar a password; depois: entrar
+  async function askLogin(msg) { // primeira vez de sempre: criar o acesso; depois: entrar
     const r = await realFetch(API + "/api/check").catch(() => null);
     const d = r && r.status === 200 ? await r.json().catch(() => ({})) : {};
     loginForm(msg, !!d.setup);
@@ -65,7 +66,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     const a = document.createElement("p");
     a.style.cssText = "text-align:center;margin:40px 0;opacity:.6";
-    a.innerHTML = '<a href="#" onclick="event.preventDefault();admLogout()">sair deste browser</a>';
+    a.innerHTML = '<a href="#" onclick="event.preventDefault();admLogout()">sair</a>';
     document.body.appendChild(a);
   });
 
@@ -399,7 +400,7 @@
       if (p === "/api/comments/all") return await allComments();
       if (p === "/api/visits") return await visits(u.searchParams.get("hide_me") === "1");
       const r = await worker(p + u.search, { method, body: bodyIn, headers: typeof bodyIn === "string" ? { "Content-Type": "application/json" } : {} });
-      if (r.status === 401) { localStorage.removeItem("adm"); askLogin("A password mudou. Entra outra vez."); }
+      if (r.status === 401) { localStorage.removeItem("adm"); askLogin("A sessão terminou. Entra outra vez."); }
       return r;
     } catch (e) { return err("Erro: " + e.message, 500); }
   }

@@ -289,20 +289,23 @@ async function fetchMeta(url) {
 }
 
 // ---------------- pedidos ----------------
-// Password do admin: criada no próprio admin na 1.ª entrada; guarda-se só o hash (com sal) na D1.
-const pwHash = async (salt, pw) => sha256(salt + ":" + pw);
-function pwFrom(req) {
+// Utilizador e password do admin: criados no próprio admin na 1.ª entrada; guarda-se só o hash (com sal) na D1.
+const pwHash = async (salt, user, pw) => sha256(salt + ":" + user.toLowerCase() + ":" + pw);
+function credsFrom(req) {
   const a = req.headers.get("Authorization") || "";
-  if (!a.startsWith("Basic ")) return "";
-  try { return new TextDecoder().decode(Uint8Array.from(atob(a.slice(6)), (c) => c.charCodeAt(0))).split(":").slice(1).join(":"); } catch { return ""; }
+  if (!a.startsWith("Basic ")) return ["", ""];
+  try {
+    const s = new TextDecoder().decode(Uint8Array.from(atob(a.slice(6)), (c) => c.charCodeAt(0)));
+    const i = s.indexOf(":");
+    return [s.slice(0, i).trim(), s.slice(i + 1)];
+  } catch { return ["", ""]; }
 }
 async function isAdmin(req, env) {
-  const pw = pwFrom(req);
-  if (!pw) return false;
-  if (env.ADMIN_PASSWORD) return pw === env.ADMIN_PASSWORD;
+  const [user, pw] = credsFrom(req);
+  if (!user || !pw) return false;
   const s = await kvGet(env, "admin_pw", null);
   if (!s) return false;
-  const h = await pwHash(s.salt, pw);
+  const h = await pwHash(s.salt, user, pw);
   return h.length === s.hash.length && crypto.subtle.timingSafeEqual(enc.encode(h), enc.encode(s.hash));
 }
 
@@ -366,16 +369,18 @@ async function route(req, env, ctx, url) {
       `"posts":${await g("content:posts")},"media_new":${await g("media:new")},"media_deleted":${await g("media:deleted")}}`);
   }
   if (p === "/api/check" && m === "GET") {
-    const setup = !env.ADMIN_PASSWORD && !(await kvGet(env, "admin_pw", null));
+    const setup = !(await kvGet(env, "admin_pw", null));
     if (setup) return json({ ok: false, setup: true });
     return (await isAdmin(req, env)) ? json({ ok: true }) : text("Password errada", 401);
   }
-  if (p === "/api/setup" && m === "POST") { // criar a password (só enquanto não existir nenhuma)
-    if (env.ADMIN_PASSWORD || (await kvGet(env, "admin_pw", null))) return text("A password já foi criada", 409);
-    const pw = String((await body(req)).pw || "");
+  if (p === "/api/setup" && m === "POST") { // criar utilizador e password (só enquanto não existirem)
+    if (await kvGet(env, "admin_pw", null)) return text("O acesso ao admin já foi criado", 409);
+    const d = await body(req);
+    const user = String(d.user || "").trim().slice(0, 60), pw = String(d.pw || "");
+    if (!user) return text("Escreve o nome de utilizador", 400);
     if (pw.length < 8) return text("A password tem de ter pelo menos 8 caracteres", 400);
     const salt = rid(16);
-    await kvSet(env, "admin_pw", { salt, hash: await pwHash(salt, pw), created: nowISO() });
+    await kvSet(env, "admin_pw", { salt, hash: await pwHash(salt, user, pw), created: nowISO() });
     return empty();
   }
 
