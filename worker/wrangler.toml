@@ -13,7 +13,7 @@ REPO = "joaocostart/joaocostart"
 [[d1_databases]]
 binding = "DB"
 database_name = "site"
-database_id = "PREENCHER_DEPOIS_DO_D1_CREATE"
+database_id = "eac1ca34-8dc0-4e40-ab65-9908294b858d"
 
 # Segredos (não ficam aqui):
 #   ADMIN_PASSWORD  ->  npx wrangler secret put ADMIN_PASSWORD
