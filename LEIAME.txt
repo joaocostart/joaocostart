@@ -48,7 +48,6 @@ build_static.py, static/ (site e admin), data/ (conteudos), docs/ (gerado, nao e
    para instalar o cloudflared e o comando final
      sudo cloudflared service install <TOKEN>
    Copia-o de la (o token e secreto: nao o partilhes nem o ponhas no git).
-   O tunel antigo "raspberry-site" (criado no Pi antigo, chave perdida) pode ser apagado.
 
 6) ARRANCAR O SITE SEMPRE QUE O PI LIGA
    sudo nano /etc/systemd/system/site.service  (troca UTILIZADOR e a password):
