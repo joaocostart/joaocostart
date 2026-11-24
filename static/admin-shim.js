@@ -21,6 +21,8 @@
   const creds = () => { try { return JSON.parse(localStorage.getItem("adm") || "null"); } catch { return null; } };
   const basic = (c) => "Basic " + btoa("admin:" + c.pw);
   function loginForm(msg) {
+    const cur = document.getElementById("adm-login");
+    if (cur) { if (msg) cur.querySelector("p").textContent = msg; return; }
     document.documentElement.style.overflow = "hidden";
     const d = document.createElement("div");
     d.id = "adm-login";
@@ -94,7 +96,12 @@
     const total = blobs.reduce((n, [, b]) => n + b.size, 0) || 1;
     let done = 0;
     for (const [path, v] of Object.entries(files)) {
-      if (v === null) { entries.push({ path, mode: "100644", type: "blob", sha: null }); continue; }
+      if (v === null) { // só apaga o que existe mesmo no repositório (alguns ficheiros antigos perderam-se)
+        const ex = await realFetch(`https://api.github.com/repos/${REPO}/contents/${path}?ref=${BRANCH}`,
+          { method: "HEAD", headers: { Authorization: "Bearer " + creds().gh }, cache: "no-store" });
+        if (ex.ok) entries.push({ path, mode: "100644", type: "blob", sha: null });
+        continue;
+      }
       const isBlob = v instanceof Blob;
       const sha = await postBlob(isBlob ? await fileB64(v) : utf8B64(v),
         isBlob && onProgress ? (l, t) => onProgress((done + (l / t) * v.size) / total) : null);
