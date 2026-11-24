@@ -41,18 +41,14 @@ build_static.py, static/ (site e admin), data/ (conteudos), docs/ (gerado, nao e
    cd ~/site && git config user.name "Site (Pi)" && git config user.email "site@joaocostart.com"
 
 5) CLOUDFLARE TUNNEL (api.joaocostart.com, sem abrir portas no router)
-   Instala o cloudflared (instrucoes em developers.cloudflare.com -> Cloudflare Tunnel), depois:
-   cloudflared tunnel login
-   cloudflared tunnel create site
-   cloudflared tunnel route dns site api.joaocostart.com
-   nano ~/.cloudflared/config.yml :
-     tunnel: site
-     credentials-file: /home/UTILIZADOR/.cloudflared/<ID-DO-TUNEL>.json
-     ingress:
-       - hostname: api.joaocostart.com
-         service: http://127.0.0.1:8000
-       - service: http_status:404
-   sudo cloudflared --config ~/.cloudflared/config.yml service install
+   O tunel "site-api" ja existe na Cloudflare, com a rota
+   api.joaocostart.com -> http://localhost:8000 (gerido no painel, nao no Pi).
+   dash.cloudflare.com -> Networking -> Tunnels -> site-api -> Overview -> Add a replica
+   escolhe Debian e a arquitetura do Pi (64-bit = arm64): a pagina mostra os comandos
+   para instalar o cloudflared e o comando final
+     sudo cloudflared service install <TOKEN>
+   Copia-o de la (o token e secreto: nao o partilhes nem o ponhas no git).
+   O tunel antigo "raspberry-site" (criado no Pi antigo, chave perdida) pode ser apagado.
 
 6) ARRANCAR O SITE SEMPRE QUE O PI LIGA
    sudo nano /etc/systemd/system/site.service  (troca UTILIZADOR e a password):
