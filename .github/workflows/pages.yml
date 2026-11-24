@@ -1,14 +1,19 @@
-# Gera o site (build_static.py) e publica no GitHub Pages a cada alteração no main
-# (incluindo as que o admin grava). Demora 1-2 minutos.
+# Publica o site no GitHub Pages.
+#  - de 5 em 5 minutos: vai buscar ao Worker o que foi publicado no admin (sync_content.py);
+#    se houver novidades, guarda-as no repositório e publica o site;
+#  - a cada push para o main (alterações ao código): publica o site.
+# Usa só a autorização interna do GitHub Actions (sem tokens).
 name: Publicar site
 
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -19,6 +24,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.decide.outputs.publish }}
     steps:
       - uses: actions/checkout@v4
 
@@ -26,28 +33,52 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Ir buscar o que foi publicado no admin
+        id: sync
+        run: python sync_content.py
+
+      - name: Guardar no repositório
+        if: steps.sync.outputs.changed == 'true'
+        run: |
+          git config user.name "site (admin)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          git commit -m "Publicação no admin"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Decidir se publica
+        id: decide
+        run: echo "publish=${{ github.event_name != 'schedule' || steps.sync.outputs.changed == 'true' }}" >> "$GITHUB_OUTPUT"
+
       - uses: astral-sh/setup-uv@v6
+        if: steps.decide.outputs.publish == 'true'
 
       # política da empresa: só pacotes publicados há pelo menos 3 dias
       - name: Instalar dependências
+        if: steps.decide.outputs.publish == 'true'
         run: uv pip install --system --exclude-newer "$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)" flask cryptography
 
       # as traduções já feitas ficam guardadas entre publicações
       - uses: actions/cache@v4
+        if: steps.decide.outputs.publish == 'true'
         with:
           path: data/translations.json
           key: translations-${{ github.run_id }}
           restore-keys: translations-
 
       - name: Gerar o site
+        if: steps.decide.outputs.publish == 'true'
         run: python build_static.py
 
       - uses: actions/upload-pages-artifact@v3
+        if: steps.decide.outputs.publish == 'true'
         with:
           path: docs
 
   deploy:
     needs: build
+    if: needs.build.outputs.publish == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

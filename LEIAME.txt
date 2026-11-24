@@ -1,39 +1,36 @@
 SITE PESSOAL — GITHUB PAGES + CLOUDFLARE (sem servidor proprio)
 ===============================================================
 Como funciona:
-  - joaocostart.com        -> GitHub Pages. O GitHub Actions (.github/workflows/pages.yml)
-                              gera o site com build_static.py a cada alteracao no main
-                              e publica-o (1-2 minutos). Traducao para ingles incluida.
-  - joaocostart.com/admin  -> o admin. Quando publicas algo, o proprio browser grava os
-                              ficheiros no GitHub (static/admin-shim.js) e o Actions
-                              atualiza o site. As estatisticas sao calculadas no browser.
-  - api.joaocostart.com    -> Cloudflare Worker (pasta worker/) + base de dados D1:
-                              comentarios, registos, visitas, notificacoes (ntfy, WhatsApp,
-                              push), etiquetas, links personalizados e utilizadores.
-  Tudo gratuito. Nada depende de um computador ligado.
+  - joaocostart.com        -> GitHub Pages, gerado por build_static.py no GitHub Actions
+                              (.github/workflows/pages.yml). Traducao para ingles incluida.
+  - joaocostart.com/admin  -> o admin. So pede a password (criada na 1.a entrada).
+                              O que publicas fica guardado no Worker; de 5 em 5 minutos o
+                              GitHub Actions vai busca-lo (sync_content.py), guarda-o no
+                              repositorio e publica o site. Aparece no site em 5-20 minutos.
+  - api.joaocostart.com    -> Cloudflare Worker (pasta worker/) + D1 + KV: conteudo novo,
+                              comentarios, registos, visitas, notificacoes, links, utilizadores.
+  Tudo gratuito, sem tokens e sem nenhum computador ligado.
+  Importante: o conteudo (data/*.json) muda-se pelo admin. Alteracoes feitas a mao nesses
+  ficheiros sao substituidas pela versao do admin na sincronizacao seguinte.
 
 Ficheiros: app.py (so para gerar o site e testar no computador), build_static.py,
 translate.py, geo.py, webpush.py, static/ (site e admin), data/ (conteudos),
 worker/ (API). A pasta docs/ e gerada (nao vai para o git).
 
 ENTRAR NO ADMIN (joaocostart.com/admin)
-  So pede a password do admin (segredo ADMIN_PASSWORD do Worker).
-  O Worker guarda tambem um token do GitHub (segredo GITHUB_TOKEN) e e ele que grava
-  as publicacoes no repositorio. Para criar esse token (uma vez):
-    github.com -> Settings -> Developer settings -> Personal access tokens ->
-    Fine-grained tokens -> Generate new token
-      Repository access: Only select repositories -> joaocostart/joaocostart
-      Permissions -> Repository permissions -> Contents: Read and write
-  e cola-o em: Cloudflare -> Workers & Pages -> site-api -> Settings ->
-  Variables and Secrets -> Add -> Secret, nome GITHUB_TOKEN.
+  Na 1.a vez pede para criares a password (minimo 8 caracteres). Depois, so a password.
+  Se a esqueceres: no painel da Cloudflare -> Storage & databases -> D1 -> site -> Console:
+    DELETE FROM kv WHERE k='admin_pw';
+  e volta a abrir o admin para criar uma nova.
 
 WORKER (so quando mudares o codigo em worker/)
   cd worker
   npx wrangler login                 (uma vez por computador)
   npx wrangler deploy
-  Mudar a password do admin:  npx wrangler secret put ADMIN_PASSWORD
   Base de dados (primeira vez): npx wrangler d1 execute site --remote --file=schema.sql
   Testar no computador: crie worker/.dev.vars com ADMIN_PASSWORD=teste e corra npx wrangler dev
+  Agendamento: o GitHub desliga tarefas de 5 em 5 min se o repositorio ficar 60 dias sem
+  alteracoes; nesse caso: GitHub -> Actions -> Publicar site -> Enable workflow.
 
 TESTAR O SITE NO COMPUTADOR
   pip install flask cryptography
@@ -41,7 +38,7 @@ TESTAR O SITE NO COMPUTADOR
   python build_static.py               -> gera docs/ como no GitHub Actions
 
 VIDEOS
-  O GitHub nao aceita ficheiros com mais de 100 MB (e acima de ~50 MB fica lento).
+  Maximo 25 MB por ficheiro.
   Comprime antes de publicar (720p, ~2-4 MB por minuto):
   ffmpeg -i original.mov -vf scale=-2:720 -c:v libx264 -crf 24 -c:a aac -movflags +faststart saida.mp4
   Formatos aceites: jpg png webp gif | mp4 webm m4v | mp3 m4a ogg wav

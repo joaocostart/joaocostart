@@ -8,13 +8,16 @@ routes = [{ pattern = "api.joaocostart.com", custom_domain = true }]
 [vars]
 SITE = "https://joaocostart.com"
 SITE_ORIGINS = "https://joaocostart.com,https://www.joaocostart.com"
-REPO = "joaocostart/joaocostart"
 
+# comentários, visitas, utilizadores, configurações e o conteúdo (introdução, escritas, posts)
 [[d1_databases]]
 binding = "DB"
 database_name = "site"
 database_id = "eac1ca34-8dc0-4e40-ab65-9908294b858d"
 
-# Segredos (não ficam aqui):
-#   ADMIN_PASSWORD  ->  npx wrangler secret put ADMIN_PASSWORD
-#   GITHUB_TOKEN    ->  npx wrangler secret put GITHUB_TOKEN  (token só deste repositório, Contents: Read and write)
+# ficheiros carregados no admin (imagens, vídeos, áudio) até o GitHub os copiar
+[[kv_namespaces]]
+binding = "MEDIA"
+id = "b47f5d083cd742b6a42354d8bc8b5d1b"
+
+# A password do admin é criada no próprio admin na primeira entrada (fica cifrada na D1).

@@ -1,15 +1,13 @@
 /* Adaptador do admin para o site sem servidor próprio (GitHub Pages + Cloudflare).
  * O admin.html continua igual e faz pedidos a /api/...; este script apanha-os:
- *  - conteúdo (introdução, foto, escritas/músicas/podcast, opiniões): lido e gravado no
- *    repositório do GitHub através do Worker (que guarda o token); o GitHub Actions publica a seguir;
+ *  - conteúdo (introdução, foto, escritas/músicas/podcast, opiniões): gravado no Worker;
+ *    o GitHub Actions copia-o para o repositório e publica o site de 5 em 5 minutos;
  *  - estatísticas de visitas e lista de comentários: calculadas aqui no browser;
  *  - o resto (comentários, utilizadores, etiquetas, links, notificações): Worker da Cloudflare.
  * Só precisa da password do admin.
  */
 (() => {
   const API = window.API_BASE || "https://api.joaocostart.com";
-  const REPO = window.SITE_REPO || "joaocostart/joaocostart";
-  const BRANCH = "main";
   const SECTIONS = ["musica", "escrita", "podcast"];
   const KINDS = {}; "jpg jpeg png webp gif".split(" ").forEach((e) => (KINDS[e] = "image"));
   "mp4 webm m4v".split(" ").forEach((e) => (KINDS[e] = "video")); "mp3 m4a ogg wav aac opus flac".split(" ").forEach((e) => (KINDS[e] = "audio"));
@@ -20,32 +18,50 @@
   // ---------- credenciais (guardadas só neste browser) ----------
   const creds = () => { try { return JSON.parse(localStorage.getItem("adm") || "null"); } catch { return null; } };
   const basic = (c) => "Basic " + btoa("admin:" + c.pw);
-  function loginForm(msg) {
+  function loginForm(msg, setup) {
     const cur = document.getElementById("adm-login");
     if (cur) { if (msg) cur.querySelector("p").textContent = msg; return; }
     document.documentElement.style.overflow = "hidden";
     const d = document.createElement("div");
     d.id = "adm-login";
     d.style.cssText = "position:fixed;inset:0;z-index:99999;background:#0f1112;color:#e8e6e1;font:16px system-ui,sans-serif;display:flex;align-items:center;justify-content:center";
+    const field = (name, label) => `<label>${label}<input name=${name} type=password required minlength=${setup ? 8 : 1} autocomplete=${setup ? "new-password" : "current-password"} style="width:100%;padding:10px;margin-top:4px"></label>`;
     d.innerHTML = `<form style="width:min(420px,90vw);display:grid;gap:12px">
-      <h2 style="margin:0 0 4px;font:600 22px Georgia,serif">Admin</h2>
+      <h2 style="margin:0 0 4px;font:600 22px Georgia,serif">${setup ? "Criar a password do admin" : "Admin"}</h2>
       <p style="margin:0;color:#c66">${msg || ""}</p>
-      <label>Password do admin<input name=pw type=password required autocomplete=current-password style="width:100%;padding:10px;margin-top:4px"></label>
-      <button style="padding:10px;font-size:16px">Entrar</button>
+      ${setup ? field("pw", "Nova password (mínimo 8 caracteres)") + field("pw2", "Repete a password") : field("pw", "Password")}
+      <button style="padding:10px;font-size:16px">${setup ? "Criar e entrar" : "Entrar"}</button>
       <small style="color:#9a968e">Fica guardada só neste browser. Para sair: "sair deste browser" no fundo do admin.</small></form>`;
     document.body.appendChild(d);
     d.querySelector("input").focus();
+    const say = (t) => (d.querySelector("p").textContent = t);
     d.querySelector("form").onsubmit = async (e) => {
       e.preventDefault();
-      const c = { pw: e.target.pw.value };
+      const f = e.target, c = { pw: f.pw.value };
+      if (setup) {
+        if (f.pw.value !== f.pw2.value) return say("As passwords não são iguais.");
+        const r = await realFetch(API + "/api/setup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pw: c.pw }) }).catch(() => ({}));
+        if (!r.ok) return say(r.text ? await r.text() : "Sem ligação ao servidor (api.joaocostart.com).");
+      }
       const r = await realFetch(API + "/api/check", { headers: { Authorization: basic(c) } }).catch(() => ({}));
-      if (!r.ok) return (d.querySelector("p").textContent = r.status === 401 ? "Password errada." : "Sem ligação ao servidor (api.joaocostart.com).");
+      if (!r.ok) return say(r.status === 401 ? "Password errada." : "Sem ligação ao servidor (api.joaocostart.com).");
       localStorage.setItem("adm", JSON.stringify(c));
       location.reload();
     };
   }
+  async function askLogin(msg) { // primeira vez de sempre: criar a password; depois: entrar
+    const r = await realFetch(API + "/api/check").catch(() => null);
+    const d = r && r.status === 200 ? await r.json().catch(() => ({})) : {};
+    loginForm(msg, !!d.setup);
+  }
   window.admLogout = () => { localStorage.removeItem("adm"); location.reload(); };
-  if (!creds()) { document.addEventListener("DOMContentLoaded", () => loginForm()); }
+  // ficheiros acabados de carregar ainda não estão no site: mostra-os a partir do Worker
+  document.addEventListener("error", (e) => {
+    const el = e.target, src = el && (el.getAttribute && el.getAttribute("src"));
+    const m = src && src.match(/^\/media\/([0-9a-f]{32}\.[a-z0-9]{2,5})/);
+    if (m) el.src = `${API}/api/media/${m[1]}`;
+  }, true);
+  if (!creds()) { document.addEventListener("DOMContentLoaded", () => askLogin()); }
   document.addEventListener("DOMContentLoaded", () => {
     const a = document.createElement("p");
     a.style.cssText = "text-align:center;margin:40px 0;opacity:.6";
@@ -53,65 +69,49 @@
     document.body.appendChild(a);
   });
 
-  // ---------- GitHub (através do Worker, que guarda o token) ----------
-  const GH = `${API}/api/gh/repos/${REPO}`;
-  const ghFetch = (path, opts = {}) => realFetch(GH + path, { cache: "no-store", ...opts, headers: { Authorization: basic(creds()), ...(opts.headers || {}) } });
-  async function gh(path, opts = {}) {
-    const r = await ghFetch(path, { ...opts, headers: { Accept: "application/vnd.github+json", "Content-Type": "application/json", ...(opts.headers || {}) } });
-    if (r.status === 401 && !(await r.clone().text()).includes("GitHub")) loginForm("A password mudou. Entra outra vez.");
-    if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0, 200)}`);
-    return r.status === 204 ? null : r.json();
-  }
-  async function readJSON(path, def) {
-    const r = await ghFetch(`/contents/${path}?ref=${BRANCH}&t=${Date.now()}`, { headers: { Accept: "application/vnd.github.raw+json" } });
+  // ---------- conteúdo guardado no Worker (o GitHub Actions copia-o para o site de 5 em 5 min) ----------
+  const auth = () => ({ Authorization: basic(creds()) });
+  async function readJSON(path, def) { // path: data/site.json | data/items.json | data/posts.json
+    const name = path.replace(/^data\/|\.json$/g, "");
+    const r = await realFetch(`${API}/api/content/${name}?t=${Date.now()}`, { cache: "no-store" });
     if (r.status === 404) return def;
-    if (!r.ok) throw new Error(`GitHub ${r.status}`);
-    try { return JSON.parse(await r.text()); } catch { return def; }
+    if (!r.ok) throw new Error(`Servidor ${r.status}`);
+    try { return (await r.json()) ?? def; } catch { return def; }
   }
   const dump = (o) => JSON.stringify(o, null, 1);
-  const fileB64 = (blob) => new Promise((ok, bad) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(",")[1] || ""); fr.onerror = bad; fr.readAsDataURL(blob); });
-  const utf8B64 = (s) => { const b = new TextEncoder().encode(s); let o = ""; for (let i = 0; i < b.length; i += 0x8000) o += String.fromCharCode(...b.subarray(i, i + 0x8000)); return btoa(o); };
 
-  // envia um blob com indicação de progresso (para "A enviar 37%")
-  function postBlob(b64, onProgress) {
+  // envia um ficheiro com indicação de progresso (para "A enviar 37%")
+  function putMedia(name, blob, onProgress) {
     return new Promise((ok, bad) => {
       const x = new XMLHttpRequest.__real();
-      x.open("POST", `${GH}/git/blobs`);
+      x.open("PUT", `${API}/api/media/${name}`);
       x.setRequestHeader("Authorization", basic(creds()));
-      x.setRequestHeader("Accept", "application/vnd.github+json");
-      x.setRequestHeader("Content-Type", "application/json");
       if (onProgress) x.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded, e.total);
-      x.onload = () => (x.status < 300 ? ok(JSON.parse(x.responseText).sha) : bad(new Error("GitHub " + x.status + ": " + x.responseText.slice(0, 200))));
-      x.onerror = () => bad(new Error("Erro de ligação ao GitHub"));
-      x.send(JSON.stringify({ content: b64, encoding: "base64" }));
+      x.onload = () => (x.status < 300 ? ok() : bad(new Error(x.responseText || "Erro " + x.status)));
+      x.onerror = () => bad(new Error("Erro de ligação ao servidor"));
+      x.send(blob);
     });
   }
-  // grava vários ficheiros num só commit. files: {caminho: Blob|string|null(apagar)}
+  // grava as alterações no Worker. files: {caminho: Blob (ficheiro novo) | string (JSON) | null (apagar)}
   async function commit(files, message, onProgress) {
-    const entries = [];
-    const blobs = Object.entries(files).filter(([, v]) => v instanceof Blob);
+    const entries = Object.entries(files);
+    const blobs = entries.filter(([, v]) => v instanceof Blob);
+    for (const [, b] of blobs) if (b.size > 25 * 1024 * 1024) throw new Error(`"${b.name || "ficheiro"}" tem ${Math.round(b.size / 1048576)} MB — o máximo é 25 MB. Comprime o vídeo/áudio.`);
     const total = blobs.reduce((n, [, b]) => n + b.size, 0) || 1;
     let done = 0;
-    for (const [path, v] of Object.entries(files)) {
-      if (v === null) { // só apaga o que existe mesmo no repositório (alguns ficheiros antigos perderam-se)
-        const ex = await ghFetch(`/contents/${path}?ref=${BRANCH}`, { method: "HEAD" });
-        if (ex.ok) entries.push({ path, mode: "100644", type: "blob", sha: null });
-        continue;
-      }
-      const isBlob = v instanceof Blob;
-      const sha = await postBlob(isBlob ? await fileB64(v) : utf8B64(v),
-        isBlob && onProgress ? (l, t) => onProgress((done + (l / t) * v.size) / total) : null);
-      if (isBlob) done += v.size;
-      entries.push({ path, mode: "100644", type: "blob", sha });
+    for (const [path, v] of blobs) { // 1.º os ficheiros
+      await putMedia(path.split("/").pop(), v, onProgress ? (l, t) => onProgress((done + (l / t) * v.size) / total) : null);
+      done += v.size;
     }
-    for (let attempt = 0; ; attempt++) {
-      const ref = await gh(`/git/ref/heads/${BRANCH}`);
-      const base = await gh(`/git/commits/${ref.object.sha}`);
-      const tree = await gh("/git/trees", { method: "POST", body: JSON.stringify({ base_tree: base.tree.sha, tree: entries }) });
-      const c = await gh("/git/commits", { method: "POST", body: JSON.stringify({ message, tree: tree.sha, parents: [ref.object.sha] }) });
-      try { await gh(`/git/refs/heads/${BRANCH}`, { method: "PATCH", body: JSON.stringify({ sha: c.sha }) }); return; }
-      catch (e) { if (attempt >= 2) throw e; } // alguém gravou entretanto: tenta de novo
+    for (const [path, v] of entries) { // depois o texto (introdução / listas)
+      if (typeof v !== "string") continue;
+      const r = await realFetch(`${API}/api/content/${path.replace(/^data\/|\.json$/g, "")}`, { method: "PUT", headers: { ...auth(), "Content-Type": "application/json" }, body: v });
+      if (r.status === 401) { localStorage.removeItem("adm"); askLogin("Entra outra vez."); }
+      if (!r.ok) throw new Error(await r.text());
     }
+    for (const [path, v] of entries) if (v === null) // por fim, apaga os ficheiros substituídos
+      await realFetch(`${API}/api/media/${path.split("/").pop()}`, { method: "DELETE", headers: auth() });
+    if (window.toast) setTimeout(() => window.toast("Guardado ✓ — aparece no site daqui a 5-20 minutos"), 2700);
   }
   const UP = (name) => `data/uploads/${name}`;
   const newName = (ext) => crypto.randomUUID().replace(/-/g, "") + "." + ext;
@@ -384,7 +384,7 @@
   async function handle(method, url, bodyIn, prog) {
     const u = new URL(url, location.href);
     if (!u.pathname.startsWith("/api/") || u.origin !== location.origin) return null;
-    if (!creds()) { loginForm(); return err("Entra primeiro", 401); }
+    if (!creds()) { askLogin(); return err("Entra primeiro", 401); }
     const p = u.pathname, json = () => (typeof bodyIn === "string" ? JSON.parse(bodyIn || "{}") : {});
     let m;
     try {
@@ -399,7 +399,7 @@
       if (p === "/api/comments/all") return await allComments();
       if (p === "/api/visits") return await visits(u.searchParams.get("hide_me") === "1");
       const r = await worker(p + u.search, { method, body: bodyIn, headers: typeof bodyIn === "string" ? { "Content-Type": "application/json" } : {} });
-      if (r.status === 401) loginForm("A password mudou. Entra outra vez.");
+      if (r.status === 401) { localStorage.removeItem("adm"); askLogin("A password mudou. Entra outra vez."); }
       return r;
     } catch (e) { return err("Erro: " + e.message, 500); }
   }

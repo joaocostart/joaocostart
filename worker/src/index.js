@@ -62,11 +62,10 @@ const ipOf = (req) => req.headers.get("CF-Connecting-IP") || "";
 // ---------------- conteúdo publicado (para títulos) ----------------
 let contentCache = { t: 0, items: [], posts: [] };
 async function content(env) {
-  if (Date.now() - contentCache.t < 60_000) return contentCache;
+  if (Date.now() - contentCache.t < 10_000) return contentCache;
   try {
-    const [items, posts] = await Promise.all(["items", "posts"].map((x) =>
-      fetch(`${env.SITE}/api/${x}`, { cf: { cacheTtl: 60 } }).then((r) => (r.ok ? r.json() : []))));
-    contentCache = { t: Date.now(), items, posts };
+    const [items, posts] = await Promise.all(["items", "posts"].map((x) => kvGet(env, "content:" + x, [])));
+    contentCache = { t: Date.now(), items: items || [], posts: posts || [] };
   } catch { /* mantém o anterior */ }
   return contentCache;
 }
@@ -290,13 +289,34 @@ async function fetchMeta(url) {
 }
 
 // ---------------- pedidos ----------------
-function isAdmin(req, env) {
+// Password do admin: criada no próprio admin na 1.ª entrada; guarda-se só o hash (com sal) na D1.
+const pwHash = async (salt, pw) => sha256(salt + ":" + pw);
+function pwFrom(req) {
   const a = req.headers.get("Authorization") || "";
-  if (!env.ADMIN_PASSWORD || !a.startsWith("Basic ")) return false;
-  let pw = "";
-  try { pw = atob(a.slice(6)).split(":").slice(1).join(":"); } catch { return false; }
-  return pw.length === env.ADMIN_PASSWORD.length && crypto.subtle.timingSafeEqual
-    ? crypto.subtle.timingSafeEqual(enc.encode(pw), enc.encode(env.ADMIN_PASSWORD)) : pw === env.ADMIN_PASSWORD;
+  if (!a.startsWith("Basic ")) return "";
+  try { return new TextDecoder().decode(Uint8Array.from(atob(a.slice(6)), (c) => c.charCodeAt(0))).split(":").slice(1).join(":"); } catch { return ""; }
+}
+async function isAdmin(req, env) {
+  const pw = pwFrom(req);
+  if (!pw) return false;
+  if (env.ADMIN_PASSWORD) return pw === env.ADMIN_PASSWORD;
+  const s = await kvGet(env, "admin_pw", null);
+  if (!s) return false;
+  const h = await pwHash(s.salt, pw);
+  return h.length === s.hash.length && crypto.subtle.timingSafeEqual(enc.encode(h), enc.encode(s.hash));
+}
+
+// ---------- conteúdo publicado no admin (o GitHub Actions copia-o para o repositório) ----------
+const CONTENT = ["site", "items", "posts"];
+const MEDIA_NAME = /^[0-9a-f]{32}\.[a-z0-9]{2,5}$/;
+const MIME = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif", mp4: "video/mp4",
+  webm: "video/webm", m4v: "video/mp4", mp3: "audio/mpeg", m4a: "audio/mp4", ogg: "audio/ogg", wav: "audio/wav", aac: "audio/aac",
+  opus: "audio/ogg", flac: "audio/flac" };
+async function bump(env) { await kvSet(env, "content:version", (await kvGet(env, "content:version", 0)) + 1); }
+async function mediaList(env, k, f) { // listas de ficheiros novos/apagados (guardam-se 30 dias)
+  const cut = ago(30 * 86400);
+  const l = (await kvGet(env, k, [])).filter((x) => x.t > cut);
+  await kvSet(env, k, f(l));
 }
 
 function cors(req, env, res) {
@@ -327,8 +347,37 @@ export default {
 
 async function route(req, env, ctx, url) {
   const p = url.pathname, m = req.method, DB = env.DB;
-  const admin = () => isAdmin(req, env);
   const deny = () => text("Acesso restrito", 401);
+  let mm;
+
+  // ---------- conteúdo e ficheiros (leitura pública; é o que o site mostra) ----------
+  if ((mm = p.match(/^\/api\/content\/(\w+)$/)) && m === "GET" && CONTENT.includes(mm[1])) {
+    const v = await DB.prepare("SELECT v FROM kv WHERE k=?").bind("content:" + mm[1]).first();
+    return v ? rawJson(v.v) : text("Ainda sem conteúdo", 404);
+  }
+  if ((mm = p.match(/^\/api\/media\/([\w.]+)$/)) && m === "GET" && MEDIA_NAME.test(mm[1])) {
+    const o = await env.MEDIA.get(mm[1], "stream");
+    if (!o) return text("Não encontrado", 404);
+    return new Response(o, { headers: { "Content-Type": MIME[mm[1].split(".").pop()] || "application/octet-stream", "Cache-Control": "public, max-age=31536000, immutable" } });
+  }
+  if (p === "/api/export" && m === "GET") { // o GitHub Actions vem buscar isto de 5 em 5 minutos
+    const g = async (k) => (await DB.prepare("SELECT v FROM kv WHERE k=?").bind(k).first())?.v || "null";
+    return rawJson(`{"version":${await g("content:version")},"site":${await g("content:site")},"items":${await g("content:items")},` +
+      `"posts":${await g("content:posts")},"media_new":${await g("media:new")},"media_deleted":${await g("media:deleted")}}`);
+  }
+  if (p === "/api/check" && m === "GET") {
+    const setup = !env.ADMIN_PASSWORD && !(await kvGet(env, "admin_pw", null));
+    if (setup) return json({ ok: false, setup: true });
+    return (await isAdmin(req, env)) ? json({ ok: true }) : text("Password errada", 401);
+  }
+  if (p === "/api/setup" && m === "POST") { // criar a password (só enquanto não existir nenhuma)
+    if (env.ADMIN_PASSWORD || (await kvGet(env, "admin_pw", null))) return text("A password já foi criada", 409);
+    const pw = String((await body(req)).pw || "");
+    if (pw.length < 8) return text("A password tem de ter pelo menos 8 caracteres", 400);
+    const salt = rid(16);
+    await kvSet(env, "admin_pw", { salt, hash: await pwHash(salt, pw), created: nowISO() });
+    return empty();
+  }
 
   // ---------- públicos ----------
   if (p === "/api/counts" && m === "GET") {
@@ -433,21 +482,32 @@ async function route(req, env, ctx, url) {
   }
 
   // ---------- admin ----------
-  if (!admin()) return deny();
+  if (!(await isAdmin(req, env))) return deny();
 
-  if (p === "/api/check") return json({ ok: true, github: !!env.GITHUB_TOKEN });
-  if (p.startsWith("/api/gh/")) { // ponte para o GitHub: o token fica aqui, o admin só precisa da password
-    const rest = p.slice("/api/gh".length);
-    if (!rest.startsWith(`/repos/${env.REPO}/`) && rest !== `/repos/${env.REPO}`) return text("Caminho não permitido", 403);
-    if (!env.GITHUB_TOKEN) return text("Falta o segredo GITHUB_TOKEN no Worker", 500);
-    const h = { Authorization: "Bearer " + env.GITHUB_TOKEN, "User-Agent": "site-api", Accept: req.headers.get("Accept") || "application/vnd.github+json" };
-    if (req.headers.get("Content-Type")) h["Content-Type"] = req.headers.get("Content-Type");
-    const r = await fetch("https://api.github.com" + rest + url.search, { method: m, headers: h, body: ["GET", "HEAD"].includes(m) ? undefined : req.body });
-    return new Response(r.body, { status: r.status, headers: { "Content-Type": r.headers.get("Content-Type") || "application/json", "Cache-Control": "no-store" } });
+  if ((mm = p.match(/^\/api\/content\/(\w+)$/)) && m === "PUT" && CONTENT.includes(mm[1])) {
+    const t = await req.text();
+    try { JSON.parse(t); } catch { return text("JSON inválido", 400); }
+    await DB.prepare("INSERT INTO kv(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v").bind("content:" + mm[1], t).run();
+    await bump(env);
+    return empty();
+  }
+  if ((mm = p.match(/^\/api\/media\/([\w.]+)$/)) && MEDIA_NAME.test(mm[1]) && (m === "PUT" || m === "DELETE")) {
+    const name = mm[1], t = nowISO();
+    if (m === "PUT") {
+      if (+(req.headers.get("Content-Length") || 0) > 25 * 1024 * 1024) return text("Ficheiro demasiado grande (máximo 25 MB). Comprime o vídeo.", 413);
+      await env.MEDIA.put(name, req.body);
+      await mediaList(env, "media:new", (l) => l.filter((x) => x.name !== name).concat([{ name, t }]));
+      await mediaList(env, "media:deleted", (l) => l.filter((x) => x.name !== name));
+    } else {
+      await env.MEDIA.delete(name);
+      await mediaList(env, "media:new", (l) => l.filter((x) => x.name !== name));
+      await mediaList(env, "media:deleted", (l) => l.filter((x) => x.name !== name).concat([{ name, t }]));
+    }
+    await bump(env);
+    return empty();
   }
   if (p === "/api/comments/all" && m === "GET") // em bruto; o admin junta os títulos
     return rawJson("[" + (await DB.prepare("SELECT data FROM comments ORDER BY t DESC").all()).results.map((r) => r.data).join(",") + "]");
-  let mm;
   if ((mm = p.match(/^\/api\/comments\/([\w-]+)\/reply$/)) && m === "POST") {
     const reply = String((await body(req)).reply || "").trim().slice(0, 1500);
     const r = await DB.prepare("SELECT data FROM comments WHERE id=?").bind(mm[1]).first();
