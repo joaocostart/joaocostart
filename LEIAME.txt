@@ -1,80 +1,49 @@
-SITE PESSOAL — GITHUB PAGES + RASPBERRY PI
-==========================================
+SITE PESSOAL — GITHUB PAGES + CLOUDFLARE (sem servidor proprio)
+===============================================================
 Como funciona:
-  - joaocostart.com      -> GitHub Pages (pasta docs/ deste repositorio). E o que os
-                            visitantes veem: paginas, escritas, posts, imagens, ingles.
-                            Fica sempre online, mesmo com o Pi desligado.
-  - api.joaocostart.com  -> o Raspberry Pi (app.py), via Cloudflare Tunnel. Trata dos
-                            comentarios, registos, visitas, notificacoes e do /admin.
-                            joaocostart.com/admin reencaminha para aqui.
-  - Quando mudas algo no admin, o Pi gera de novo a pasta docs/ (build_static.py) e faz
-    push para o GitHub (publish.py). O site atualiza 1-2 minutos depois.
-  - Com o Pi desligado: o site continua online; comentarios e admin ficam parados.
+  - joaocostart.com        -> GitHub Pages. O GitHub Actions (.github/workflows/pages.yml)
+                              gera o site com build_static.py a cada alteracao no main
+                              e publica-o (1-2 minutos). Traducao para ingles incluida.
+  - joaocostart.com/admin  -> o admin. Quando publicas algo, o proprio browser grava os
+                              ficheiros no GitHub (static/admin-shim.js) e o Actions
+                              atualiza o site. As estatisticas sao calculadas no browser.
+  - api.joaocostart.com    -> Cloudflare Worker (pasta worker/) + base de dados D1:
+                              comentarios, registos, visitas, notificacoes (ntfy, WhatsApp,
+                              push), etiquetas, links personalizados e utilizadores.
+  Tudo gratuito. Nada depende de um computador ligado.
 
-Ficheiros: app.py (servidor), geo.py, webpush.py, translate.py, publish.py,
-build_static.py, static/ (site e admin), data/ (conteudos), docs/ (gerado, nao editar).
+Ficheiros: app.py (so para gerar o site e testar no computador), build_static.py,
+translate.py, geo.py, webpush.py, static/ (site e admin), data/ (conteudos),
+worker/ (API). A pasta docs/ e gerada (nao vai para o git).
 
-1) GITHUB PAGES (uma vez)
-   github.com/joaocostart/joaocostart -> Settings -> Pages
-   Source: "Deploy from a branch", Branch: main, pasta /docs -> Save
-   Custom domain: joaocostart.com (vem do ficheiro docs/CNAME)
-   Depois do DNS (passo 2) estar ativo: marcar "Enforce HTTPS".
+ENTRAR NO ADMIN (joaocostart.com/admin)
+  - Password do admin: a que esta no Worker (segredo ADMIN_PASSWORD).
+  - Token do GitHub (so na 1.a vez em cada browser):
+    github.com -> Settings -> Developer settings -> Personal access tokens ->
+    Fine-grained tokens -> Generate new token
+      Repository access: Only select repositories -> joaocostart/joaocostart
+      Permissions -> Repository permissions -> Contents: Read and write
+    Guarda-o num sitio seguro; se o perderes, crias outro.
 
-2) DNS NA CLOUDFLARE (uma vez)  dash.cloudflare.com -> joaocostart.com -> DNS
-   - Apaga o registo A antigo de joaocostart.com (o IP de casa).
-   - Cria 4 registos A, nome "@", Proxy status "DNS only" (nuvem cinzenta):
-       185.199.108.153   185.199.109.153   185.199.110.153   185.199.111.153
-   - Cria um CNAME, nome "www", destino joaocostart.github.io, "DNS only".
-   - O registo api.joaocostart.com e criado pelo Cloudflare Tunnel (passo 5).
+WORKER (so quando mudares o codigo em worker/)
+  cd worker
+  npx wrangler login                 (uma vez por computador)
+  npx wrangler deploy
+  Mudar a password do admin:  npx wrangler secret put ADMIN_PASSWORD
+  Base de dados (primeira vez): npx wrangler d1 execute site --remote --file=schema.sql
+  Testar no computador: crie worker/.dev.vars com ADMIN_PASSWORD=teste e corra npx wrangler dev
 
-3) INSTALAR NO PI
-   sudo apt update && sudo apt install -y git python3-flask python3-cryptography gunicorn ffmpeg
-   git clone git@github.com:joaocostart/joaocostart.git ~/site   (depois do passo 4)
-   Os segredos e dados privados nao estao no git (ver .gitignore): login Google/Facebook
-   e notificacoes configuram-se de novo no admin.
+TESTAR O SITE NO COMPUTADOR
+  pip install flask cryptography
+  ADMIN_PASSWORD=teste python app.py   -> http://localhost:8000
+  python build_static.py               -> gera docs/ como no GitHub Actions
 
-4) AUTORIZAR O PI A FAZER PUSH (publicacao automatica)
-   ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
-   cat ~/.ssh/id_ed25519.pub
-   GitHub -> repositorio -> Settings -> Deploy keys -> Add deploy key
-     cola a chave, marca "Allow write access".
-   cd ~/site && git config user.name "Site (Pi)" && git config user.email "site@joaocostart.com"
+VIDEOS
+  O GitHub nao aceita ficheiros com mais de 100 MB (e acima de ~50 MB fica lento).
+  Comprime antes de publicar (720p, ~2-4 MB por minuto):
+  ffmpeg -i original.mov -vf scale=-2:720 -c:v libx264 -crf 24 -c:a aac -movflags +faststart saida.mp4
+  Formatos aceites: jpg png webp gif | mp4 webm m4v | mp3 m4a ogg wav
 
-5) CLOUDFLARE TUNNEL (api.joaocostart.com, sem abrir portas no router)
-   O tunel "site-api" ja existe na Cloudflare, com a rota
-   api.joaocostart.com -> http://localhost:8000 (gerido no painel, nao no Pi).
-   dash.cloudflare.com -> Networking -> Tunnels -> site-api -> Overview -> Add a replica
-   escolhe Debian e a arquitetura do Pi (64-bit = arm64): a pagina mostra os comandos
-   para instalar o cloudflared e o comando final
-     sudo cloudflared service install <TOKEN>
-   Copia-o de la (o token e secreto: nao o partilhes nem o ponhas no git).
-
-6) ARRANCAR O SITE SEMPRE QUE O PI LIGA
-   sudo nano /etc/systemd/system/site.service  (troca UTILIZADOR e a password):
-
-   [Unit]
-   Description=Site pessoal
-   After=network-online.target
-   [Service]
-   User=UTILIZADOR
-   WorkingDirectory=/home/UTILIZADOR/site
-   Environment=ADMIN_PASSWORD=escolhe-uma-password-forte
-   Environment=AUTO_PUBLISH=1
-   ExecStart=/usr/bin/gunicorn -w 1 --threads 8 --timeout 900 -b 127.0.0.1:8000 app:app
-   Restart=always
-   [Install]
-   WantedBy=multi-user.target
-
-   sudo systemctl enable --now site
-   Admin: https://api.joaocostart.com/admin (ou joaocostart.com/admin)
-   Registo das publicacoes: data/publish.log
-
-7) TESTAR NO COMPUTADOR (sem Pi)
-   ADMIN_PASSWORD=teste python3 app.py   -> http://localhost:8000 e /admin
-   python3 build_static.py               -> gera docs/ a mao (faz commit e push depois)
-
-8) VIDEOS
-   O GitHub nao aceita ficheiros com mais de 100 MB. Comprime antes de publicar
-   (720p, ~2-4 MB por minuto):
-   ffmpeg -i original.mov -vf scale=-2:720 -c:v libx264 -crf 24 -c:a aac -movflags +faststart saida.mp4
-   Formatos aceites: jpg png webp gif | mp4 webm m4v | mp3 m4a ogg wav
+DNS (Cloudflare): joaocostart.com -> 4 registos A do GitHub (185.199.108-111.153),
+www -> CNAME joaocostart.github.io, todos "DNS only". O api.joaocostart.com e criado
+automaticamente pelo Worker.
