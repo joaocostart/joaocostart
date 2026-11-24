@@ -1,15 +1,17 @@
-"""Gera a versão estática do site (para o GitHub Pages) na pasta docs/.
+"""Gera a parte pública do site (para o GitHub Pages) na pasta docs/.
 
 Uso:  python build_static.py
-Corre o app.py "a fingir" (sem servidor) e grava cada página e cada resposta
-da API como ficheiro. Sem admin, comentários, login, estatísticas nem
-notificações — isso só funciona com o servidor (app.py) a correr.
-Volta a correr sempre que mudares data/ ou static/, e faz commit da pasta docs/.
+Corre o app.py "a fingir" (sem servidor) e grava cada página e o conteúdo
+(introdução, escritas, posts, imagens) como ficheiros. Os comentários, visitas
+e registos continuam a ir ao servidor em API (o Pi, via Cloudflare Tunnel),
+e joaocostart.com/admin reencaminha para o admin nesse servidor.
+No servidor isto corre sozinho depois de cada alteração no admin (publish.py).
 """
 import json, os, shutil, sys
 from pathlib import Path
 
 DOMAIN = "joaocostart.com"
+API = os.environ.get("API_BASE", "https://api.joaocostart.com")
 BASE = Path(__file__).parent
 OUT = BASE / "docs"
 
@@ -17,8 +19,10 @@ os.environ.setdefault("ADMIN_PASSWORD", "build-estatico")  # o app.py precisa de
 sys.path.insert(0, str(BASE))
 import app as site  # noqa: E402
 
-STATIC_CSS = ("<style>/* versão estática: sem comentários nem login */"
-              ".cform,.nocm{display:none!important}</style>\n")
+HEAD = f"<script>window.API_BASE={json.dumps(API)}</script>\n"
+ADMIN_REDIRECT = (f'<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex">'
+                  f'<meta http-equiv="refresh" content="0;url={API}/admin"><title>Admin</title>'
+                  f'<a href="{API}/admin">Ir para o admin</a>')
 
 
 def get(c, path):
@@ -34,7 +38,7 @@ def write(rel, data):
 
 def page(c, path):
     status, html = get(c, path)
-    html = html.decode("utf-8").replace("</head>", STATIC_CSS + "</head>", 1)
+    html = html.decode("utf-8").replace("</head>", HEAD + "</head>", 1)
     rel = "404.html" if path == "/404" else (path.strip("/") + "/index.html" if path != "/" else "index.html")
     write(rel, html.encode("utf-8"))
     return status
@@ -60,7 +64,7 @@ def main():
 
     for api in ("site", "items", "posts"):
         write(f"api/{api}", get(c, f"/api/{api}")[1])
-    write("api/comments", b"[]")
+    write("admin/index.html", ADMIN_REDIRECT.encode("utf-8"))
     for f in ("ads.txt", "robots.txt", "sitemap.xml"):
         write(f, get(c, "/" + f)[1])
 

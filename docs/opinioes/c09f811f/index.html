@@ -284,7 +284,7 @@ footer::before{content:"❦";position:absolute;left:50%;top:-13px;transform:tran
 <meta name="twitter:card" content="summary_large_image">
 <meta property="og:image:width" content="429">
 <meta property="og:image:height" content="282">
-<style>/* versão estática: sem comentários nem login */.cform,.nocm{display:none!important}</style>
+<script>window.API_BASE="https://api.joaocostart.com"</script>
 </head><body>
 <header><div class="wrap"><a id="logo" href="/"><span id="logoname"></span></a><div class="hright"><nav id="nav" class="mono"></nav><span id="lg" class="mono"><a data-l="pt" onclick="setLang('pt')">PT</a>/<a data-l="en" onclick="setLang('en')">EN</a></span></div></div></header>
 <main id="m" class="wrap"><article class="post ssr"><h1>Para mim o melhor concerto dos Metallica - Seattle 1989</h1><p><small>Opiniões · 12 de novembro de 2026</small></p><p><a href="https://www.youtube.com/watch?v=caznxOmRByU&amp;list=RDcaznxOmRByU&amp;start_radio=1&amp;t=611s" rel="noopener">https://www.youtube.com/watch?v=caznxOmRByU&amp;list=RDcaznxOmRByU&amp;start_radio=1&amp;t=611s</a></p><p>Para mim, um dos melhores concertos dos Metallica<br>Como o meu álbum favorito é Ride the Lightning este concerto é qualquer coisa<br>A voz do James está para mim no pico e consegue demonstrar bem a intenção das músicas, a própria energia de todo o concerto e muita intensidade.<br>A própria voz de back do Jason ta on point muito heavy mesmo, e deu o seu cunho dominante nas músicas<br>Melhores músicas para mim For whom the bell tolls e Creeping Death<br>Houve o concerto de Moscow mas para mim, gostei mais deste<br>rip Cliff mas o Jason esteve mesmo top</p></article></main>
@@ -308,6 +308,7 @@ const handle=u=>{try{return '@'+new URL(u).pathname.split('/').filter(Boolean)[0
 const fdate=d=>d?new Date(d+'T12:00').toLocaleDateString(L==='en'?'en-GB':'pt-PT',{day:'numeric',month:'long',year:'numeric'}):'';
 const sdate=d=>d?d.split('-').reverse().join('.'):'';
 const num=n=>String(n).padStart(2,'0');
+const API=window.API_BASE||'';  // servidor dos comentários/visitas (no GitHub Pages: api.joaocostart.com)
 async function getJSON(u,def){try{const r=await fetch(u);return r.ok?await r.json():def}catch(e){return def}}
 async function data(){  // site + todos os itens + opiniões (uma vez por carregamento)
   if(!cache){const[site,items,posts]=await Promise.all([getJSON('/api/site',{}),getJSON('/api/items',[]),getJSON('/api/posts',[])]);cache={site,items,posts}}
@@ -328,7 +329,7 @@ async function track(){  // regista a visita (não conta se no admin marcaste "n
   if(firstHit){try{ref=sessionStorage.getItem('ref');sessionStorage.removeItem('ref')}catch(e){}
     if(!ref&&document.referrer&&!document.referrer.startsWith(location.origin))ref=document.referrer}
   firstHit=false;
-  fetch('/api/hit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:location.pathname||'/',token:(typeof acct!=='undefined'&&acct&&acct.token)||'',ref:ref||'',vid,model,de,screen:screen.width+'x'+screen.height+'@'+(Math.round((devicePixelRatio||1)*100)/100),lang:(navigator.language||'').slice(0,12),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),name:who.name||'',ig:who.ig||''}),keepalive:true}).catch(()=>{})}
+  fetch(API+'/api/hit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:location.pathname||'/',token:(typeof acct!=='undefined'&&acct&&acct.token)||'',ref:ref||'',vid,model,de,screen:screen.width+'x'+screen.height+'@'+(Math.round((devicePixelRatio||1)*100)/100),lang:(navigator.language||'').slice(0,12),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),name:who.name||'',ig:who.ig||''}),keepalive:true}).catch(()=>{})}
 
 /* ---- ícones oficiais (Instagram, Facebook e WhatsApp com o mesmo tamanho) ---- */
 let icoN=0;
@@ -454,13 +455,13 @@ function postPage(d,id){
 /* ---- comentários ---- */
 let me={};try{me=JSON.parse(localStorage.getItem('me')||'{}')}catch(e){}
 let acct=null;try{acct=JSON.parse(localStorage.getItem('acct')||'null')}catch(e){}
-if(acct&&acct.token)fetch('/api/me',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:acct.token})})
+if(acct&&acct.token)fetch(API+'/api/me',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:acct.token})})
   .then(async r=>{if(r.status===404){acct=null;try{localStorage.removeItem('acct')}catch(e){}}else if(r.ok){const u=await r.json();acct={...acct,...u};try{localStorage.setItem('acct',JSON.stringify(acct))}catch(e){}}}).catch(()=>{});
 const commentHTML=c=>`<div class="cm"><div class="cmh"><span class="cav" aria-hidden="true">${esc((c.name||'?').trim().charAt(0).toUpperCase())}</span><b>${esc(c.name)}</b>${c.ig?`<a href="https://www.instagram.com/${encodeURIComponent(c.ig)}/" target="_blank" rel="nofollow ugc noopener">@${esc(c.ig)}</a>`:''}<span class="mono">${fdate(c.t.slice(0,10))}</span></div><p>${esc(en(c,'text'))}</p>`
   +(c.reply?`<div class="rp"><span class="mono">${esc(cache.site.name||'')}${T[L].replied}</span><p>${esc(en(c,'reply'))}</p></div>`:'')+'</div>';
 const commentsSection=key=>`<section class="comments" id="comentarios"><h2 class="mono">${T[L].comments}</h2><div id="clist"></div><div id="cbox">${commentForm(key)}</div></section>`;
 async function loadComments(key){
-  const cs=await getJSON('/api/comments?page='+encodeURIComponent(key),[]),el=$('#clist');if(!el)return;
+  const cs=await getJSON(API+'/api/comments?page='+encodeURIComponent(key),[]),el=$('#clist');if(!el)return;
   el.innerHTML=cs.length?cs.map(commentHTML).join(''):`<p class="nocm">${T[L].nocm}</p>`;
   el.previousElementSibling.textContent=T[L].comments+(cs.length?' · '+cs.length:'')}
 function commentForm(key){
@@ -482,10 +483,10 @@ async function sendComment(ev,key){
   b.disabled=true;b.textContent=T[L].sending;msg.textContent='';
   try{
     if(!acct){
-      const a=await post('/api/register',{name:f.name.value,ig:f.ig.value,accept:f.accept.checked,website:f.website.value});
+      const a=await post(API+'/api/register',{name:f.name.value,ig:f.ig.value,accept:f.accept.checked,website:f.website.value});
       if(!a.token)throw new Error(T[L].cmerr);
       acct={token:a.token,name:a.name,ig:a.ig};try{localStorage.setItem('acct',JSON.stringify(acct))}catch(e){};}
-    await post('/api/comments',{page:key,token:acct.token,text:f.text.value});
+    await post(API+'/api/comments',{page:key,token:acct.token,text:f.text.value});
     const [sec,id]=key.split('/'),o=(sec==='opinioes'?cache.posts:cache.items).find(x=>x.id===id);if(o)o.comments=(o.comments||0)+1;
     await loadComments(key);$('#cbox').innerHTML=commentForm(key);
     $('#clist').lastElementChild?.scrollIntoView({behavior:'smooth',block:'center'})}

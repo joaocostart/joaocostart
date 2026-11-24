@@ -17,3 +17,4 @@ data/translations.json
 data/geo/
 # chave das sessões (criada pelo app.py)
 data/secret.key
+data/publish.log

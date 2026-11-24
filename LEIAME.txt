@@ -1,50 +1,85 @@
-SITE PESSOAL NO RASPBERRY PI
-============================
-Estrutura: app.py (servidor), static/ (site e admin), data/ (os teus conteudos).
-Nao precisa de base de dados: os textos ficam em data/*.json e os ficheiros
-(imagens, videos, audio) em data/uploads/. Faz backup copiando a pasta data/.
+SITE PESSOAL — GITHUB PAGES + RASPBERRY PI
+==========================================
+Como funciona:
+  - joaocostart.com      -> GitHub Pages (pasta docs/ deste repositorio). E o que os
+                            visitantes veem: paginas, escritas, posts, imagens, ingles.
+                            Fica sempre online, mesmo com o Pi desligado.
+  - api.joaocostart.com  -> o Raspberry Pi (app.py), via Cloudflare Tunnel. Trata dos
+                            comentarios, registos, visitas, notificacoes e do /admin.
+                            joaocostart.com/admin reencaminha para aqui.
+  - Quando mudas algo no admin, o Pi gera de novo a pasta docs/ (build_static.py) e faz
+    push para o GitHub (publish.py). O site atualiza 1-2 minutos depois.
+  - Com o Pi desligado: o site continua online; comentarios e admin ficam parados.
 
-1) INSTALAR (no Pi)
-   sudo apt update && sudo apt install -y python3-flask gunicorn ffmpeg
-   Copia esta pasta para o Pi, por exemplo para ~/site
+Ficheiros: app.py (servidor), geo.py, webpush.py, translate.py, publish.py,
+build_static.py, static/ (site e admin), data/ (conteudos), docs/ (gerado, nao editar).
 
-2) TESTAR
-   cd ~/site
-   $env:ADMIN_PASSWORD='Passw0rd' python3 app.py
-   Site:  http://IP-DO-PI:8000
-   Admin: http://IP-DO-PI:8000/admin  (utilizador: qualquer um; password: a que definiste)
-   No admin escreves o teu nome e a introducao, e publicas imagens/videos/audio
-   em Musica, Escrita ou Podcast. Sem ADMIN_PASSWORD o admin fica bloqueado.
+1) GITHUB PAGES (uma vez)
+   github.com/joaocostart/joaocostart -> Settings -> Pages
+   Source: "Deploy from a branch", Branch: main, pasta /docs -> Save
+   Custom domain: joaocostart.com (vem do ficheiro docs/CNAME)
+   Depois do DNS (passo 2) estar ativo: marcar "Enforce HTTPS".
 
-3) ARRANCAR SEMPRE QUE O PI LIGA
-   sudo nano /etc/systemd/system/site.service   e cola (troca "pi" e o caminho se for preciso):
+2) DNS NA CLOUDFLARE (uma vez)  dash.cloudflare.com -> joaocostart.com -> DNS
+   - Apaga o registo A antigo de joaocostart.com (o IP de casa).
+   - Cria 4 registos A, nome "@", Proxy status "DNS only" (nuvem cinzenta):
+       185.199.108.153   185.199.109.153   185.199.110.153   185.199.111.153
+   - Cria um CNAME, nome "www", destino joaocostart.github.io, "DNS only".
+   - O registo api.joaocostart.com e criado pelo Cloudflare Tunnel (passo 5).
+
+3) INSTALAR NO PI
+   sudo apt update && sudo apt install -y git python3-flask python3-cryptography gunicorn ffmpeg
+   git clone git@github.com:joaocostart/joaocostart.git ~/site   (depois do passo 4)
+   Os segredos e dados privados nao estao no git (ver .gitignore): login Google/Facebook
+   e notificacoes configuram-se de novo no admin.
+
+4) AUTORIZAR O PI A FAZER PUSH (publicacao automatica)
+   ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
+   cat ~/.ssh/id_ed25519.pub
+   GitHub -> repositorio -> Settings -> Deploy keys -> Add deploy key
+     cola a chave, marca "Allow write access".
+   cd ~/site && git config user.name "Site (Pi)" && git config user.email "site@joaocostart.com"
+
+5) CLOUDFLARE TUNNEL (api.joaocostart.com, sem abrir portas no router)
+   Instala o cloudflared (instrucoes em developers.cloudflare.com -> Cloudflare Tunnel), depois:
+   cloudflared tunnel login
+   cloudflared tunnel create site
+   cloudflared tunnel route dns site api.joaocostart.com
+   nano ~/.cloudflared/config.yml :
+     tunnel: site
+     credentials-file: /home/UTILIZADOR/.cloudflared/<ID-DO-TUNEL>.json
+     ingress:
+       - hostname: api.joaocostart.com
+         service: http://127.0.0.1:8000
+       - service: http_status:404
+   sudo cloudflared --config ~/.cloudflared/config.yml service install
+
+6) ARRANCAR O SITE SEMPRE QUE O PI LIGA
+   sudo nano /etc/systemd/system/site.service  (troca UTILIZADOR e a password):
 
    [Unit]
    Description=Site pessoal
-   After=network.target
+   After=network-online.target
    [Service]
-   User=pi
-   WorkingDirectory=/home/pi/site
+   User=UTILIZADOR
+   WorkingDirectory=/home/UTILIZADOR/site
    Environment=ADMIN_PASSWORD=escolhe-uma-password-forte
+   Environment=AUTO_PUBLISH=1
    ExecStart=/usr/bin/gunicorn -w 1 --threads 8 --timeout 900 -b 127.0.0.1:8000 app:app
    Restart=always
    [Install]
    WantedBy=multi-user.target
 
    sudo systemctl enable --now site
+   Admin: https://api.joaocostart.com/admin (ou joaocostart.com/admin)
+   Registo das publicacoes: data/publish.log
 
-4) DOMINIO E HTTPS (unico custo: o dominio)
-   - No registo do dominio, cria um registo A para o IP publico da tua casa
-     (se o IP mudar, usa um servico de DNS dinamico).
-   - No router, encaminha as portas 80 e 443 para o Pi.
-   - sudo apt install -y caddy
-     sudo nano /etc/caddy/Caddyfile  ->  o-teu-dominio.pt { reverse_proxy 127.0.0.1:8000 }
-     sudo systemctl reload caddy
-   Alternativa sem abrir portas: Cloudflare Tunnel (gratuito), mas confirma os termos
-   deles para video, porque podem limitar streaming pesado.
+7) TESTAR NO COMPUTADOR (sem Pi)
+   ADMIN_PASSWORD=teste python3 app.py   -> http://localhost:8000 e /admin
+   python3 build_static.py               -> gera docs/ a mao (faz commit e push depois)
 
-5) VIDEOS (para o Pi aguentar)
-   Comprime antes de publicar (720p, ~2-4 MB por minuto):
+8) VIDEOS
+   O GitHub nao aceita ficheiros com mais de 100 MB. Comprime antes de publicar
+   (720p, ~2-4 MB por minuto):
    ffmpeg -i original.mov -vf scale=-2:720 -c:v libx264 -crf 24 -c:a aac -movflags +faststart saida.mp4
    Formatos aceites: jpg png webp gif | mp4 webm m4v | mp3 m4a ogg wav
-   Dica: se puderes, guarda data/ num disco USB/SSD em vez do cartao SD (dura mais).
