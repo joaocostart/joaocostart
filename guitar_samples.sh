@@ -6,6 +6,10 @@
 set -euo pipefail
 OUT="${1:-static/guitar}"
 mkdir -p "$OUT"
+if [ "$(ls "$OUT"/*.mp3 2>/dev/null | wc -l)" -ge 37 ]; then echo "sons já existem (cache)"; exit 0; fi
+if ! command -v ffmpeg >/dev/null; then  # o servidor do GitHub nem sempre traz o ffmpeg
+  sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg >/dev/null
+fi
 declare -A PC=([C]=0 [Cs]=1 [D]=2 [Ds]=3 [E]=4 [F]=5 [Fs]=6 [G]=7 [Gs]=8 [A]=9 [As]=10 [B]=11)
 TMP=$(mktemp -d)
 for n in A2 A3 A4 As2 As3 As4 B2 B3 B4 C3 C4 C5 Cs3 Cs4 Cs5 D2 D3 D4 D5 Ds2 Ds3 Ds4 E2 E3 E4 F2 F3 F4 Fs2 Fs3 Fs4 G2 G3 G4 Gs2 Gs3 Gs4; do
