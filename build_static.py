@@ -21,7 +21,8 @@ os.environ["NO_BACKGROUND"] = "1"  # sem descargas em segundo plano no app.py
 sys.path.insert(0, str(BASE))
 import app as site  # noqa: E402
 
-HEAD = f"<script>window.API_BASE={json.dumps(API)}</script>\n"
+BUILD = __import__("time").strftime("%Y%m%d%H%M%S")  # muda a cada publicação: o browser vai buscar o conteúdo novo
+HEAD = f"<script>window.API_BASE={json.dumps(API)};window.BUILD={json.dumps(BUILD)}</script>\n"
 
 
 def get(c, path):
