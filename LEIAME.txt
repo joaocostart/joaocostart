@@ -17,13 +17,15 @@ translate.py, geo.py, webpush.py, static/ (site e admin), data/ (conteudos),
 worker/ (API). A pasta docs/ e gerada (nao vai para o git).
 
 ENTRAR NO ADMIN (joaocostart.com/admin)
-  - Password do admin: a que esta no Worker (segredo ADMIN_PASSWORD).
-  - Token do GitHub (so na 1.a vez em cada browser):
+  So pede a password do admin (segredo ADMIN_PASSWORD do Worker).
+  O Worker guarda tambem um token do GitHub (segredo GITHUB_TOKEN) e e ele que grava
+  as publicacoes no repositorio. Para criar esse token (uma vez):
     github.com -> Settings -> Developer settings -> Personal access tokens ->
     Fine-grained tokens -> Generate new token
       Repository access: Only select repositories -> joaocostart/joaocostart
       Permissions -> Repository permissions -> Contents: Read and write
-    Guarda-o num sitio seguro; se o perderes, crias outro.
+  e cola-o em: Cloudflare -> Workers & Pages -> site-api -> Settings ->
+  Variables and Secrets -> Add -> Secret, nome GITHUB_TOKEN.
 
 WORKER (so quando mudares o codigo em worker/)
   cd worker

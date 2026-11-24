@@ -435,7 +435,16 @@ async function route(req, env, ctx, url) {
   // ---------- admin ----------
   if (!admin()) return deny();
 
-  if (p === "/api/check") return json({ ok: true });
+  if (p === "/api/check") return json({ ok: true, github: !!env.GITHUB_TOKEN });
+  if (p.startsWith("/api/gh/")) { // ponte para o GitHub: o token fica aqui, o admin só precisa da password
+    const rest = p.slice("/api/gh".length);
+    if (!rest.startsWith(`/repos/${env.REPO}/`) && rest !== `/repos/${env.REPO}`) return text("Caminho não permitido", 403);
+    if (!env.GITHUB_TOKEN) return text("Falta o segredo GITHUB_TOKEN no Worker", 500);
+    const h = { Authorization: "Bearer " + env.GITHUB_TOKEN, "User-Agent": "site-api", Accept: req.headers.get("Accept") || "application/vnd.github+json" };
+    if (req.headers.get("Content-Type")) h["Content-Type"] = req.headers.get("Content-Type");
+    const r = await fetch("https://api.github.com" + rest + url.search, { method: m, headers: h, body: ["GET", "HEAD"].includes(m) ? undefined : req.body });
+    return new Response(r.body, { status: r.status, headers: { "Content-Type": r.headers.get("Content-Type") || "application/json", "Cache-Control": "no-store" } });
+  }
   if (p === "/api/comments/all" && m === "GET") // em bruto; o admin junta os títulos
     return rawJson("[" + (await DB.prepare("SELECT data FROM comments ORDER BY t DESC").all()).results.map((r) => r.data).join(",") + "]");
   let mm;

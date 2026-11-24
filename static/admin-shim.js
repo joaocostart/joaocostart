@@ -1,10 +1,10 @@
 /* Adaptador do admin para o site sem servidor próprio (GitHub Pages + Cloudflare).
  * O admin.html continua igual e faz pedidos a /api/...; este script apanha-os:
- *  - conteúdo (introdução, foto, escritas/músicas/podcast, opiniões): lido e gravado
- *    diretamente no repositório do GitHub (o GitHub Actions publica o site a seguir);
+ *  - conteúdo (introdução, foto, escritas/músicas/podcast, opiniões): lido e gravado no
+ *    repositório do GitHub através do Worker (que guarda o token); o GitHub Actions publica a seguir;
  *  - estatísticas de visitas e lista de comentários: calculadas aqui no browser;
  *  - o resto (comentários, utilizadores, etiquetas, links, notificações): Worker da Cloudflare.
- * Precisa de: password do admin (a do Worker) e um token do GitHub com acesso ao repositório.
+ * Só precisa da password do admin.
  */
 (() => {
   const API = window.API_BASE || "https://api.joaocostart.com";
@@ -31,19 +31,15 @@
       <h2 style="margin:0 0 4px;font:600 22px Georgia,serif">Admin</h2>
       <p style="margin:0;color:#c66">${msg || ""}</p>
       <label>Password do admin<input name=pw type=password required autocomplete=current-password style="width:100%;padding:10px;margin-top:4px"></label>
-      <label>Token do GitHub (só na 1.ª vez neste browser)<input name=gh type=password autocomplete=off placeholder="github_pat_…" style="width:100%;padding:10px;margin-top:4px"></label>
       <button style="padding:10px;font-size:16px">Entrar</button>
-      <small style="color:#9a968e">Ficam guardados só neste browser. Para sair: botão "sair" no fundo do admin.</small></form>`;
+      <small style="color:#9a968e">Fica guardada só neste browser. Para sair: "sair deste browser" no fundo do admin.</small></form>`;
     document.body.appendChild(d);
+    d.querySelector("input").focus();
     d.querySelector("form").onsubmit = async (e) => {
       e.preventDefault();
-      const f = e.target, old = creds() || {};
-      const c = { pw: f.pw.value, gh: f.gh.value.trim() || old.gh || "" };
-      const ok1 = (await realFetch(API + "/api/check", { headers: { Authorization: basic(c) } }).catch(() => ({}))).ok;
-      if (!ok1) return (f.previousElementSibling, (d.querySelector("p").textContent = "Password errada (ou o Worker ainda não está ativo)."));
-      const r = await realFetch(`https://api.github.com/repos/${REPO}`, { headers: { Authorization: "Bearer " + c.gh } }).catch(() => ({}));
-      const rep = r.ok ? await r.json() : null;
-      if (!rep || !(rep.permissions || {}).push) return (d.querySelector("p").textContent = "Token do GitHub inválido ou sem permissão de escrita no repositório.");
+      const c = { pw: e.target.pw.value };
+      const r = await realFetch(API + "/api/check", { headers: { Authorization: basic(c) } }).catch(() => ({}));
+      if (!r.ok) return (d.querySelector("p").textContent = r.status === 401 ? "Password errada." : "Sem ligação ao servidor (api.joaocostart.com).");
       localStorage.setItem("adm", JSON.stringify(c));
       location.reload();
     };
@@ -57,17 +53,17 @@
     document.body.appendChild(a);
   });
 
-  // ---------- GitHub ----------
+  // ---------- GitHub (através do Worker, que guarda o token) ----------
+  const GH = `${API}/api/gh/repos/${REPO}`;
+  const ghFetch = (path, opts = {}) => realFetch(GH + path, { cache: "no-store", ...opts, headers: { Authorization: basic(creds()), ...(opts.headers || {}) } });
   async function gh(path, opts = {}) {
-    const r = await realFetch("https://api.github.com/repos/" + REPO + path, {
-      ...opts, headers: { Authorization: "Bearer " + creds().gh, Accept: "application/vnd.github+json", ...(opts.headers || {}) } });
-    if (r.status === 401) { localStorage.setItem("adm", JSON.stringify({ ...creds(), gh: "" })); loginForm("O token do GitHub deixou de ser válido."); }
+    const r = await ghFetch(path, { ...opts, headers: { Accept: "application/vnd.github+json", "Content-Type": "application/json", ...(opts.headers || {}) } });
+    if (r.status === 401 && !(await r.clone().text()).includes("GitHub")) loginForm("A password mudou. Entra outra vez.");
     if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0, 200)}`);
     return r.status === 204 ? null : r.json();
   }
   async function readJSON(path, def) {
-    const r = await realFetch(`https://api.github.com/repos/${REPO}/contents/${path}?ref=${BRANCH}&t=${Date.now()}`,
-      { headers: { Authorization: "Bearer " + creds().gh, Accept: "application/vnd.github.raw+json" }, cache: "no-store" });
+    const r = await ghFetch(`/contents/${path}?ref=${BRANCH}&t=${Date.now()}`, { headers: { Accept: "application/vnd.github.raw+json" } });
     if (r.status === 404) return def;
     if (!r.ok) throw new Error(`GitHub ${r.status}`);
     try { return JSON.parse(await r.text()); } catch { return def; }
@@ -80,9 +76,10 @@
   function postBlob(b64, onProgress) {
     return new Promise((ok, bad) => {
       const x = new XMLHttpRequest.__real();
-      x.open("POST", `https://api.github.com/repos/${REPO}/git/blobs`);
-      x.setRequestHeader("Authorization", "Bearer " + creds().gh);
+      x.open("POST", `${GH}/git/blobs`);
+      x.setRequestHeader("Authorization", basic(creds()));
       x.setRequestHeader("Accept", "application/vnd.github+json");
+      x.setRequestHeader("Content-Type", "application/json");
       if (onProgress) x.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded, e.total);
       x.onload = () => (x.status < 300 ? ok(JSON.parse(x.responseText).sha) : bad(new Error("GitHub " + x.status + ": " + x.responseText.slice(0, 200))));
       x.onerror = () => bad(new Error("Erro de ligação ao GitHub"));
@@ -97,8 +94,7 @@
     let done = 0;
     for (const [path, v] of Object.entries(files)) {
       if (v === null) { // só apaga o que existe mesmo no repositório (alguns ficheiros antigos perderam-se)
-        const ex = await realFetch(`https://api.github.com/repos/${REPO}/contents/${path}?ref=${BRANCH}`,
-          { method: "HEAD", headers: { Authorization: "Bearer " + creds().gh }, cache: "no-store" });
+        const ex = await ghFetch(`/contents/${path}?ref=${BRANCH}`, { method: "HEAD" });
         if (ex.ok) entries.push({ path, mode: "100644", type: "blob", sha: null });
         continue;
       }

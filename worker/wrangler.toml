@@ -8,10 +8,13 @@ routes = [{ pattern = "api.joaocostart.com", custom_domain = true }]
 [vars]
 SITE = "https://joaocostart.com"
 SITE_ORIGINS = "https://joaocostart.com,https://www.joaocostart.com"
+REPO = "joaocostart/joaocostart"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "site"
 database_id = "PREENCHER_DEPOIS_DO_D1_CREATE"
 
-# Segredo (não fica aqui): ADMIN_PASSWORD  ->  npx wrangler secret put ADMIN_PASSWORD
+# Segredos (não ficam aqui):
+#   ADMIN_PASSWORD  ->  npx wrangler secret put ADMIN_PASSWORD
+#   GITHUB_TOKEN    ->  npx wrangler secret put GITHUB_TOKEN  (token só deste repositório, Contents: Read and write)
