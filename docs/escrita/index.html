@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="pt"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#e9dfc9">
+<title>Escrita · João Costa</title>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5856906154435144" crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cormorant+SC:wght@500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* ===== galeria · vintage · papel envelhecido, tinta sépia, latão e bordeaux ===== */
+:root{
+ --bg:#ebe1cb;--bg2:#e3d7bc;--bg3:#d8caab;--mat:#efe6d3;--ink:#2b2119;--dim:#6f604d;--line:#c2b08c;
+ --gold:#8b6a2f;--rose:#7a2e27;--teal:#3e5a49;
+ --neon:var(--gold);
+ --serif:"EB Garamond",Garamond,Georgia,serif;--disp:"Cormorant Garamond",Garamond,Georgia,serif;--sans:"EB Garamond",Garamond,Georgia,serif;--sc:"Cormorant SC","Cormorant Garamond",Garamond,Georgia,serif;
+ --ease:cubic-bezier(.2,.8,.2,1)}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(ellipse at 50% 0,#f3ebd9 0,transparent 70%),var(--bg);color:var(--ink);font:20px/1.75 var(--serif);min-height:100vh;display:flex;flex-direction:column}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.16;mix-blend-mode:multiply;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:49;background:radial-gradient(ellipse at 50% 40%,transparent 50%,rgba(110,78,32,.22) 100%)}
+a{color:inherit}
+a:focus-visible,button:focus-visible{outline:1px solid var(--gold);outline-offset:5px}
+.wrap{width:min(1160px,100% - 10vw);margin:0 auto}
+.disp{font-family:var(--disp);font-weight:500;font-style:normal;letter-spacing:.005em;line-height:1.08}
+.mono{font-family:var(--sans);font-size:13.5px;font-weight:500;line-height:1.35;letter-spacing:.2em;text-transform:uppercase}
+.rule{display:block;height:1px;background:var(--gold);opacity:.7}
+
+/* ---------- cabeçalho ---------- */
+header{padding:0;position:relative;z-index:3}
+header .wrap{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px 32px;flex-wrap:wrap;padding:20px 0 14px}
+header .wrap::before,footer::after{content:"";position:absolute;left:0;right:0;height:5px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);-webkit-mask:linear-gradient(90deg,#000 calc(50% - 20px),transparent 0 calc(50% + 20px),#000 0);mask:linear-gradient(90deg,#000 calc(50% - 20px),transparent 0 calc(50% + 20px),#000 0)}
+header .wrap::before{bottom:-2px}footer::after{top:-2px}
+header .wrap::after{content:"❦";position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);padding:0 12px;color:var(--gold);font-size:15px;line-height:22px}
+#logo{text-decoration:none;font-family:var(--sc);font-size:clamp(25px,2.3vw,32px);font-weight:600;letter-spacing:.08em;color:var(--ink);display:inline-block;line-height:1.1}
+.hright{display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;justify-content:flex-end}
+#logo .rule{display:none}
+
+nav{display:flex;justify-content:flex-end;gap:4px 0;flex-wrap:wrap}
+nav a{position:relative;text-decoration:none;color:var(--dim);padding:4px 14px;transition:color .3s}
+nav a+a::before{content:"·";position:absolute;left:-3px;color:var(--line)}
+nav a b{display:none}
+nav a::after{content:"";position:absolute;left:14px;right:14px;bottom:-2px;height:1px;background:var(--gold);transform:scaleX(0);transition:transform .4s var(--ease)}
+nav a:hover,nav a.on{color:var(--ink)}
+nav a.on::after,nav a:hover::after{transform:scaleX(1)}
+#lg{color:var(--dim);padding-left:16px;border-left:1px solid var(--line);white-space:nowrap}
+#lg a{cursor:pointer;text-decoration:none;margin:0 4px;transition:color .2s}
+#lg a:hover,#lg a.on{color:var(--gold)}
+main{flex:1;padding:40px 0 110px}
+
+/* ---------- início ---------- */
+.hero{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);align-items:center;gap:8vw;min-height:min(62vh,660px)}
+.portrait{position:relative;width:min(400px,100%);aspect-ratio:4/5;opacity:0;transform:translateY(16px);transition:opacity 1.4s ease,transform 1.4s var(--ease)}
+.portrait.in{opacity:1;transform:none}
+.portrait::before{content:"";position:absolute;inset:-14px;border:1px solid var(--gold);outline:1px solid var(--line);outline-offset:4px;opacity:.8}
+.portrait::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 42%,transparent 55%,rgba(70,45,15,.35));mix-blend-mode:multiply}
+
+.portrait img{position:relative;width:100%;height:100%;object-fit:cover;filter:grayscale(1) sepia(.45) contrast(1.05) brightness(.97);box-shadow:0 18px 40px rgba(60,40,15,.35)}
+.hero-text{max-width:31em}
+.kicker{display:block;color:var(--gold);margin-bottom:28px}
+
+
+.intro{white-space:pre-line;font-size:clamp(22px,2vw,26px);line-height:1.7;color:var(--ink)}
+.intro .line:first-child{font-family:var(--disp);font-style:italic;font-size:1.25em;line-height:1.35;margin-bottom:10px}
+.intro .line+.line{margin-top:6px}
+.explore{display:inline-flex;align-items:center;gap:14px;margin-top:40px;color:var(--gold);text-decoration:none}
+.explore::after{content:"";width:40px;height:1px;background:var(--gold);transition:width .5s var(--ease)}
+.explore:hover::after{width:80px}
+.line{display:block;opacity:0;transform:translateY(18px);transition:opacity 1s ease,transform 1s var(--ease);transition-delay:var(--d,0s)}
+.in .line{opacity:1;transform:none}
+.rv{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s var(--ease);transition-delay:var(--d,0s)}
+.rv.in{opacity:1;transform:none}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.side{display:flex;align-items:center;gap:22px;margin:110px 0 48px;scroll-margin-top:30px}
+.side::before{content:"";flex:1;height:1px;background:var(--line)}
+.side .mono{color:var(--gold);white-space:nowrap}
+.side .mono::before,.side .mono::after{content:"✦";font-size:9px;opacity:.7;vertical-align:2px}.side .mono::before{margin-right:14px}.side .mono::after{margin-left:14px}
+.side::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ---------- obras emolduradas (galeria) ---------- */
+.frame{position:relative;background:linear-gradient(160deg,#f4ecdc,#e8dcc2);padding:9%;box-shadow:0 14px 30px rgba(60,40,15,.28),0 2px 4px rgba(60,40,15,.2);outline:1px solid var(--line)}
+.frame::before{content:"";position:absolute;inset:4.5%;border:1px solid rgba(139,106,47,.45);outline:1px solid rgba(139,106,47,.2);outline-offset:3px;pointer-events:none}
+.art{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--bg3);display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(60,40,15,.5)}
+.art>img,.art>video{width:100%;height:100%;object-fit:cover;object-position:top;filter:grayscale(.55) sepia(.4) contrast(1.03) brightness(.96);transition:filter .6s,transform 1.2s var(--ease)}
+.art::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(170deg,rgba(180,130,60,.16),rgba(90,60,25,.14));mix-blend-mode:soft-light;pointer-events:none;transition:opacity .6s}
+.card:hover .art::before,.feature:hover .art::before{opacity:0}
+.art>span{font-size:54px;color:var(--gold);font-style:italic}
+.art::after{content:"";position:absolute;inset:0;z-index:1;box-shadow:inset 0 0 40px rgba(60,40,15,.35);background:radial-gradient(ellipse at 50% 45%,transparent 60%,rgba(60,40,15,.2));pointer-events:none}
+.badge{position:absolute;left:0;bottom:0;z-index:2;background:rgba(43,33,25,.88);color:#e9dfc9;padding:6px 10px;font-family:var(--sans);font-style:normal;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:64px 44px}
+.card{display:block;align-self:start;color:inherit;text-decoration:none}
+.card:hover .art>img,.card:hover .art>video,.feature:hover .art>img{filter:none;transform:scale(1.035)}
+.cap{margin-top:20px;text-align:center}
+.card:hover .cap h3{color:var(--gold)}
+.cap h3{font-family:var(--disp);font-size:23px;line-height:1.25;font-weight:500;font-style:italic;transition:color .3s}
+.cap .mono{display:block;margin-top:6px;color:var(--dim);font-size:12px}
+.cap p{font-size:15.5px;color:var(--dim);margin-top:8px;line-height:1.55}
+
+/* em destaque */
+.feature{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:7vw;align-items:center;color:inherit;text-decoration:none}
+.feature .frame{max-width:420px}
+.feature .mono{color:var(--gold)}
+.feature h2{font-size:clamp(30px,3.6vw,48px);margin:16px 0 22px;color:var(--ink);font-style:italic}
+.feature p{color:var(--dim);font-size:19px;line-height:1.8;max-width:28em}
+.more{display:inline-block;margin-top:28px;color:var(--ink);padding-bottom:6px;border-bottom:1px solid var(--gold);transition:letter-spacing .45s var(--ease)}
+.feature:hover .more{color:var(--gold)}
+
+/* ---------- secções ---------- */
+.sec-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;margin-bottom:40px}
+.sec-head h1{font-size:clamp(34px,4.2vw,54px);color:var(--ink);font-weight:500;font-style:italic;text-transform:capitalize;line-height:1}
+.sec-head .mono{color:var(--gold);letter-spacing:.3em}
+.sec-head .rule{position:relative;width:150px;margin-top:12px;height:0;background:none;opacity:1}
+.sec-head .rule::before{content:"";position:absolute;left:0;right:0;top:-2px;height:5px;border-top:1px solid var(--gold);border-bottom:1px solid var(--gold);opacity:.75;-webkit-mask:linear-gradient(90deg,#000 calc(50% - 16px),transparent 0 calc(50% + 16px),#000 0);mask:linear-gradient(90deg,#000 calc(50% - 16px),transparent 0 calc(50% + 16px),#000 0)}
+.sec-head .rule::after{content:"❦";position:absolute;left:50%;top:-11px;transform:translateX(-50%);color:var(--gold);font-size:16px;line-height:1}
+.lede{font-style:italic;color:var(--dim);font-size:21px;max-width:32em}
+.soon{max-width:30em;margin-top:2vh;padding-left:24px;border-left:1px solid var(--gold)}
+.soon b{display:block;font-family:var(--disp);font-weight:500;font-style:italic;font-size:36px;color:var(--ink)}
+.soon span{color:var(--dim)}
+
+/* ---------- página de uma obra / opinião ---------- */
+.post{max-width:780px;margin:0 auto}
+.back{text-decoration:none;color:var(--gold)}
+.back:hover{color:var(--ink)}
+.post .date{display:block;margin-top:24px;color:var(--dim)}
+.post h1{font-size:clamp(30px,3.8vw,48px);margin:10px 0 18px;color:var(--ink);font-weight:500}
+.post>.rule{width:90px;margin-bottom:30px}
+.media>*{display:block;width:100%;margin-bottom:24px;border:0}
+.media .frame{padding:5%}
+.media .frame img,.media .frame video{display:block;width:100%;object-fit:contain}
+.media>img,.media>video{max-height:82vh;object-fit:contain;background:var(--bg2)}
+.media iframe.video{aspect-ratio:16/9;height:auto;box-shadow:0 18px 40px rgba(0,0,0,.5)}
+.media iframe.spotify{height:152px;border-radius:12px}
+.media iframe.spotify-big{height:380px;border-radius:12px}
+.lk{display:flex!important;gap:20px;align-items:center;background:var(--bg2);text-decoration:none;padding:14px;border:1px solid var(--line)!important;transition:border-color .3s}
+.lk:hover{border-color:var(--gold)!important}
+.lk img{width:160px;aspect-ratio:16/10;object-fit:cover;flex:none}
+.lk b{display:block;font-weight:400;font-size:20px;line-height:1.35}
+.lk small{color:var(--dim);font-family:var(--sans);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
+.tape{margin:8px 0 40px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.tape .mono{display:flex;align-items:center;gap:12px;color:var(--gold);margin-bottom:12px}
+.eq{display:inline-flex;gap:3px;align-items:flex-end;height:14px}
+.eq i{width:3px;height:40%;background:var(--neon);border-radius:1px}
+.eq i:nth-child(2){height:100%}
+.playing .eq i{animation:eq .9s ease-in-out infinite alternate}
+.playing .eq i:nth-child(2){animation-delay:-.45s}
+.playing .eq i:nth-child(3){animation-delay:-.2s}
+@keyframes eq{from{height:20%}to{height:100%}}
+.tape audio{width:100%;filter:sepia(.5) saturate(.8)}
+.txt{font-size:21px;line-height:1.85}
+.txt p{margin:0 0 1.1em}.txt p:first-child::first-line{font-variant:small-caps;letter-spacing:.04em}
+.txt p:first-child::first-letter{float:left;font-family:var(--disp);font-weight:500;font-size:3.6em;line-height:.85;margin:6px 10px 0 0;color:var(--gold);font-variant:normal}
+.srclink{display:inline-block!important;width:auto!important;color:var(--dim);text-decoration:none;margin:-8px 0 26px}.srclink:hover{color:var(--gold)}
+.pn{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:70px;padding-top:26px;border-top:1px solid var(--line)}
+.pn a{text-decoration:none;color:var(--dim);transition:color .3s}
+.pn a{padding:0}.pn a::before,.pn a::after{display:none}
+.pn a:hover{color:var(--ink)}
+.pn a b{display:block;margin-top:8px;font-family:var(--disp);letter-spacing:0;text-transform:none;font-weight:500;font-style:italic;font-size:23px;color:var(--ink);line-height:1.3}
+.pn .nx{text-align:right;grid-column:2}
+.share{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:-4px 0 36px}
+.share a,.share button{width:40px;height:40px;border-radius:50%;border:0;padding:0;display:grid;place-items:center;cursor:pointer;text-decoration:none;background:none;opacity:.88;transition:transform .25s,opacity .25s}
+.share a:hover,.share button:hover{opacity:1;transform:translateY(-2px)}
+.share .cp{background:var(--bg3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.share .cp svg{width:20px;height:20px}
+.share .msg{width:auto;font-style:italic;font-size:16px;color:var(--dim);opacity:0;transition:opacity .3s}
+.share .msg.on{opacity:1}
+
+/* obras de texto */
+.art .page{position:absolute;inset:0;padding:12% 11%;background:#f6efe0;color:#2b2119;font-family:var(--serif);font-size:12.5px;line-height:1.55;white-space:pre-line;overflow:hidden;text-align:left;
+ -webkit-mask:linear-gradient(#000 70%,transparent);mask:linear-gradient(#000 70%,transparent)}
+.art .page b{display:block;font-family:var(--disp);font-style:italic;font-weight:500;font-size:19px;line-height:1.2;margin-bottom:10px;color:#111}
+.readtxt{margin:-4px 0 34px}.readtxt summary{cursor:pointer;color:var(--gold);list-style:none;display:inline-flex;gap:8px;align-items:center}.readtxt summary::-webkit-details-marker{display:none}
+.readtxt summary::before{content:"+";font-size:16px}.readtxt[open] summary::before{content:"−"}.readtxt .poem{margin-top:18px}
+.poem{white-space:pre-line;font-size:22px;line-height:1.9;margin:6px 0 40px;padding-left:22px;border-left:1px solid var(--line)}
+.ssr img{max-width:100%;height:auto;max-height:70vh}.ssr ul{padding-left:20px}.ssr li{margin:6px 0}.ssr a{color:var(--gold)}.ssr h2{font-family:var(--disp);font-weight:500;margin:30px 0 10px}
+
+/* comentários */
+.comments{margin-top:70px;padding-top:34px;border-top:1px solid var(--line)}
+.comments>h2{color:var(--gold);font-weight:500;margin-bottom:30px}
+.cm{position:relative;margin:0 0 18px;padding:20px 24px 20px 78px;background:linear-gradient(180deg,#f3ead8,#ece1c9);border:1px solid var(--line);border-left:3px solid var(--gold);box-shadow:0 4px 12px rgba(60,40,15,.12)}
+.cm:nth-child(even){border-left-color:var(--teal)}
+.cav{position:absolute;left:22px;top:20px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-size:22px;font-style:italic;color:#f3ead8;background:var(--gold)}
+.cm:nth-child(even) .cav{background:var(--teal)}
+.cmh{display:flex;align-items:baseline;gap:4px 12px;flex-wrap:wrap;padding-bottom:8px;border-bottom:1px dashed var(--line)}
+.cmh b{font-family:var(--disp);font-weight:600;font-style:italic;font-size:22px;color:var(--gold)}
+.cm:nth-child(even) .cmh b{color:var(--teal)}
+.cmh a{color:var(--rose);text-decoration:none;font-size:15px}
+.cmh a:hover{text-decoration:underline}
+.cmh .mono{color:var(--dim);font-size:12px;margin-left:auto;letter-spacing:.08em}
+.cm p{white-space:pre-line;margin-top:12px;font-size:18px;line-height:1.7;color:var(--ink)}
+.rp{margin:16px 0 0;padding:12px 16px;background:#e4d8bd;border-left:2px solid var(--teal)}
+.rp .mono{color:var(--teal);font-size:12px;letter-spacing:.1em}
+.rp p{color:var(--ink);margin-top:6px;font-style:italic}
+@media(max-width:640px){.cm{padding:16px 16px 16px 16px}.cav{position:static;width:32px;height:32px;font-size:18px;flex:none}.cmh{align-items:center}.cmh .mono{margin-left:0;width:100%}}
+.nocm{color:var(--dim);font-style:italic}
+.cform{display:grid;grid-template-columns:1fr 1fr;gap:6px 26px;margin-top:44px;padding:28px 30px;border:1px solid var(--line);background:#f1e8d5;box-shadow:inset 0 0 0 4px #f1e8d5,inset 0 0 0 5px var(--line)}
+@media(max-width:640px){.cform{padding:20px 18px}}
+.cform h3{grid-column:1/-1;font-family:var(--disp);font-weight:500;font-style:italic;font-size:32px;margin-bottom:8px}
+.cform .fld{display:flex;flex-direction:column;gap:6px}
+.cform .fld .mono{font-size:11.5px;color:var(--dim)}
+.cform .fld.full{grid-column:1/-1;margin-top:8px}
+.cform .row{justify-content:space-between}
+.cform .row .acc{margin:0;flex:1}
+.cform input,.cform textarea{width:100%;background:transparent;border:0;border-bottom:1px solid var(--line);color:var(--ink);font:inherit;font-size:18px;padding:12px 2px;transition:border-color .3s;border-radius:0}
+.cform textarea{grid-column:1/-1;resize:vertical;min-height:110px;line-height:1.6}
+.cform input:focus,.cform textarea:focus{outline:none;border-color:var(--gold)}
+.cform input::placeholder,.cform textarea::placeholder{color:#9a8b74;font-style:italic}
+.cform .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.cform .row{grid-column:1/-1;display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:18px}
+.cform button{background:none;border:1px solid var(--gold);color:var(--gold);padding:13px 26px;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;transition:background .3s,color .3s}
+.cform button:hover{background:var(--gold);color:var(--bg)}
+.cform button:disabled{opacity:.5;cursor:wait}
+.cform small{color:var(--dim);font-size:14px;line-height:1.5;flex:1;min-width:220px}
+.cform small a{color:var(--gold)}
+.cform .as{grid-column:1/-1;color:var(--dim);margin:-4px 0 6px}.cform .as a{color:var(--gold)}
+.cform .full{grid-column:1/-1}
+.cform .acc{display:flex;gap:10px;align-items:center;color:var(--dim);font-size:15px;line-height:1.5}.cform .acc a{color:var(--gold)}.cform .acc input{width:auto;margin-top:5px}
+.cform .cmsg{grid-column:1/-1;color:var(--rose);font-style:italic;min-height:1.5em}
+@media(max-width:820px){.cform{grid-template-columns:1fr}}
+
+/* ícones oficiais, todos com o mesmo tamanho */
+.ico{width:40px;height:40px;flex:none;display:block}
+
+/* ---------- rodapé ---------- */
+footer{position:relative;margin-top:40px}
+footer::before{content:"❦";position:absolute;left:50%;top:-13px;transform:translateX(-50%);padding:0 12px;color:var(--gold);font-size:15px;line-height:22px}
+.fmin{display:flex;align-items:center;justify-content:space-between;gap:14px 28px;flex-wrap:wrap;padding:22px 0 26px;color:var(--dim);font-size:12px}
+.fmin nav{display:flex;gap:4px 22px;flex-wrap:wrap;padding:0;border:0;width:auto}
+.fmin a{color:var(--dim);text-decoration:none;transition:color .3s}
+.fmin nav a{padding:0}.fmin nav a::before,.fmin nav a::after{display:none}
+@media(max-width:820px){.fmin{flex-direction:column;justify-content:center;text-align:center;gap:14px}.fmin nav{justify-content:center}}
+.fmin a:hover{color:var(--ink)}
+.fsoc{display:flex;gap:16px;align-items:center}
+.fsoc a{display:grid;place-items:center;opacity:.75;transition:opacity .3s,color .3s}
+.fsoc a:hover{opacity:1}
+.fsoc svg{width:17px;height:17px}
+.fsoc .ig:hover{color:#e1306c}.fsoc .fb:hover{color:#1877f2}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}.rv,.line,.portrait{opacity:1;transform:none}}
+@media(max-width:820px){
+ body{font-size:18px}
+ header .wrap{padding:14px 0 10px;gap:6px 12px}
+ .hright{display:contents}
+ #lg{order:1;border:0;padding:0}
+ nav{order:2;width:100%;justify-content:space-between;gap:2px 0;margin-top:4px}
+ nav a{padding:4px 2px;letter-spacing:.12em;font-size:12.5px}nav a::after{left:2px;right:2px}nav a+a::before{display:none}
+ main{padding:26px 0 70px}
+ .sec-head{margin-bottom:28px}
+ .grid.salon{gap:36px 18px}
+ .hero{grid-template-columns:1fr;gap:44px;min-height:0}
+ .portrait{width:min(320px,86%);margin-left:14px}
+
+
+ .side{margin-top:70px}
+ .feature{grid-template-columns:1fr;gap:28px}
+ .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:44px 22px}
+ .cap h3{font-size:18px}
+ .cap p{display:none}
+ .lk{flex-direction:column;align-items:flex-start}
+ .lk img{width:100%}
+}
+</style><meta property="og:type" content="article">
+<meta property="og:title" content="Escrita">
+<meta property="og:description" content="Escrita — autêntico de dor, perfeito não é, mas sim amor, alto demais, Uma bolha na escuridão, Cheio de dinheiro vazio, porque não te aproximas?">
+<meta property="og:url" content="https://joaocostart.com/escrita">
+<meta property="og:site_name" content="João Costa">
+<meta property="og:locale" content="pt_PT">
+<meta name="description" content="Escrita — autêntico de dor, perfeito não é, mas sim amor, alto demais, Uma bolha na escuridão, Cheio de dinheiro vazio, porque não te aproximas?">
+<link rel="canonical" href="https://joaocostart.com/escrita">
+<style>/* versão estática: sem comentários nem login */.cform,.nocm{display:none!important}</style>
+</head><body>
+<header><div class="wrap"><a id="logo" href="/"><span id="logoname"></span></a><div class="hright"><nav id="nav" class="mono"></nav><span id="lg" class="mono"><a data-l="pt" onclick="setLang('pt')">PT</a>/<a data-l="en" onclick="setLang('en')">EN</a></span></div></div></header>
+<main id="m" class="wrap"><article class="post ssr"><h1>Escrita</h1><ul><li><a href="/escrita/a17b3586">autêntico de dor</a> <small>Escrita · 3 de outubro de 2026</small></li><li><a href="/escrita/89a90c8c">perfeito não é, mas sim amor</a> <small>Escrita · 3 de outubro de 2026</small></li><li><a href="/escrita/4d2884fe">alto demais</a> <small>Escrita · 3 de outubro de 2026</small></li><li><a href="/escrita/a2319ef9">Uma bolha na escuridão</a> <small>Escrita · 3 de outubro de 2026</small></li><li><a href="/escrita/1268085d">Cheio de dinheiro vazio</a> <small>Escrita</small></li><li><a href="/escrita/9f7ceb05">porque não te aproximas?</a> <small>Escrita</small></li><li><a href="/escrita/b42abaa7">sozinho</a> <small>Escrita</small></li><li><a href="/escrita/f95cb45f">porque não sorris?</a> <small>Escrita</small></li></ul></article></main>
+<footer id="ft"></footer>
+<script>
+const $=s=>document.querySelector(s),m=$('#m');
+const SECS=['musica','escrita','podcast','opinioes'];
+const T={pt:{musica:'música',escrita:'escrita',podcast:'podcast',opinioes:'opiniões',teoria:'teoria',desc:{musica:'Canções originais e covers.',escrita:'Poemas e pensamentos soltos.',podcast:'Conversas sobre o que me vai na cabeça.',opinioes:'O que ando a ouvir — e o que penso disso.'},contents:'Índice',read:'abrir link',listen:'ouvir a minha opinião',copy:'copiar link',copied:'link copiado ✓',igcopied:'link copiado — cola-o no Instagram (stories ou bio)',recent:'Mais recente',featured:'Em destaque',readmore:'ler',open:'ver',explore:'explorar',openon:'ver no',readtxt:'Ler em texto',prev:'anterior',next:'seguinte',items:n=>n+(n===1?' obra':' obras'),audio:'áudio',tag:'Música, escrita, podcast e opiniões sobre o que ouço.',soon:'Em breve.',soonTxt:'Ainda estou a preparar esta parte.',follow:'Segue',explorefoot:'Explorar',top:'voltar ao topo ↑',privacy:'Privacidade',privacyTxt:['Este site regista as visitas para estatísticas: data, página vista, de onde vieste, tipo de aparelho e browser, endereço IP e a localização e operador aproximados que se deduzem dele. Cada browser recebe um número anónimo guardado no próprio browser, para distinguir visitas novas de repetidas.','Para comentar fazes um registo simples (nome e, se quiseres, o teu @instagram), guardado neste browser. O nome, o @instagram e os comentários ficam públicos; as tuas visitas neste browser passam a estar associadas ao teu registo (visível só para mim).','Os dados ficam guardados no meu servidor, não são vendidos nem partilhados, e as visitas são apagadas ao fim de 90 dias. O site mostra anúncios do Google AdSense, que podem usar cookies próprios.','Para apagares os teus dados ou fazeres perguntas, fala comigo pelas redes sociais no fundo da página. Podes também limpar os dados deste site no teu browser para deixares de ser reconhecido.'],notfound:'Não encontrei esta página.',comments:'Comentários',cmn:n=>n===1?'1 comentário':n+' comentários',nocm:'Ainda ninguém comentou. Sê o primeiro.',leave:'Comentar',signin:'Entrar',welcome:'Bem-vindo',welcomeTxt:'Entra com um clique para comentar e guardar as tuas opiniões. Só uso o teu nome, email e foto.',later:'Agora não',withFb:'Continuar com Facebook',withG:'Continuar com Google',orName:'ou regista-te só com o nome',account:'A minha conta',mycm:'Os teus comentários',nomycm:'Ainda não comentaste nada.',logout:'Terminar sessão',delacct:'Apagar a minha conta',delask:'Apagar a tua conta? Os teus dados de registo são apagados.',delcm:'Apagar também os teus comentários?',via:'entraste com',loginToComment:'Entra para comentar:',as:'A comentar como',notyou:'não és tu?',regintro:'Para comentar, regista-te uma vez — fica guardado neste browser.',email:'Email (opcional, só eu vejo)',accept:'Aceito a <a href="/privacidade">política de privacidade</a>',regsend:'Registar e publicar',name:'Nome',ig:'Instagram (opcional)',say:'Comentário',send:'Publicar',sending:'A publicar…',cmnote:'O teu nome e comentário ficam públicos; o @instagram é opcional. Ao comentar, as tuas visitas seguintes neste browser ficam associadas ao teu nome (só eu vejo). <a href="/privacidade">Privacidade</a>',replied:' respondeu',cmerr:'Não foi possível publicar. Tenta de novo.'},
+ en:{musica:'music',escrita:'writing',podcast:'podcast',opinioes:'opinions',teoria:'theory',desc:{musica:'Original songs and covers.',escrita:'Poems and loose thoughts.',podcast:'Conversations about whatever is on my mind.',opinioes:'What I’ve been listening to — and what I make of it.'},contents:'Contents',read:'open link',listen:'listen to my take',copy:'copy link',copied:'link copied ✓',igcopied:'link copied — paste it on Instagram (stories or bio)',recent:'Latest',featured:'Featured',readmore:'read',open:'view',explore:'explore',openon:'open on',readtxt:'Read as text',prev:'previous',next:'next',items:n=>n+(n===1?' piece':' pieces'),audio:'audio',tag:'Music, writing, a podcast and opinions on what I listen to.',soon:'Coming soon.',soonTxt:"I'm still preparing this part.",follow:'Follow',explorefoot:'Explore',top:'back to top ↑',privacy:'Privacy',privacyTxt:['This site records visits for statistics: date, page viewed, where you came from, device type and browser, IP address and the approximate location and provider derived from it. Each browser gets an anonymous number stored in the browser itself, to tell new visits from repeat ones.','To comment you do a simple sign-up (your name and, optionally, your @instagram), saved in this browser. Your name, @instagram and comments are public; your visits from this browser become linked to your registration (visible only to me).','Data is stored on my own server, is not sold or shared, and visits are deleted after 90 days. The site shows Google AdSense ads, which may use their own cookies.','To delete your data or ask questions, contact me through the social links at the bottom of the page. You can also clear this site’s data in your browser to stop being recognised.'],notfound:"I couldn't find this page.",comments:'Comments',cmn:n=>n===1?'1 comment':n+' comments',nocm:'No comments yet. Be the first.',leave:'Comment',signin:'Sign in',welcome:'Welcome',welcomeTxt:'Sign in with one click to comment and keep your thoughts. I only use your name, email and photo.',later:'Not now',withFb:'Continue with Facebook',withG:'Continue with Google',orName:'or sign up with just your name',account:'My account',mycm:'Your comments',nomycm:'You haven’t commented yet.',logout:'Sign out',delacct:'Delete my account',delask:'Delete your account? Your registration data will be erased.',delcm:'Also delete your comments?',via:'signed in with',loginToComment:'Sign in to comment:',as:'Commenting as',notyou:'not you?',regintro:'To comment, sign up once — it stays saved in this browser.',email:'Email (optional, only I see it)',accept:'I accept the <a href="/privacidade">privacy policy</a>',regsend:'Sign up and post',name:'Name',ig:'Instagram (optional)',say:'Comment',send:'Post',sending:'Posting…',cmnote:'Your name and comment are public; @instagram is optional. After commenting, your later visits from this browser are linked to your name (only I can see this). <a href="/privacidade">Privacy</a>',replied:' replied',cmerr:"Couldn't post. Please try again."}};
+let L='pt';try{L=localStorage.getItem('lang')||'pt'}catch(e){}
+let cache=null,keyNav=null;
+function setLang(l){L=l;try{localStorage.setItem('lang',l)}catch(e){}route()}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const src=i=>'/media/'+i.file;
+// PT = original; EN = versão inglesa escrita à mão, senão a tradução automática (campos *_tr)
+const en=(o,k)=>L==='en'&&(o[k+'_en']||o[k+'_tr'])||o[k]||'';
+const ti=i=>en(i,'title');
+const ptx=p=>en(p,'text');
+const host=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return ''}};
+const handle=u=>{try{return '@'+new URL(u).pathname.split('/').filter(Boolean)[0]}catch(e){return ''}};
+const fdate=d=>d?new Date(d+'T12:00').toLocaleDateString(L==='en'?'en-GB':'pt-PT',{day:'numeric',month:'long',year:'numeric'}):'';
+const sdate=d=>d?d.split('-').reverse().join('.'):'';
+const num=n=>String(n).padStart(2,'0');
+async function getJSON(u,def){try{const r=await fetch(u);return r.ok?await r.json():def}catch(e){return def}}
+async function data(){  // site + todos os itens + opiniões (uma vez por carregamento)
+  if(!cache){const[site,items,posts]=await Promise.all([getJSON('/api/site',{}),getJSON('/api/items',[]),getJSON('/api/posts',[])]);cache={site,items,posts}}
+  return cache}
+
+/* ---- visitas ---- */
+let firstHit=true,vid='',model='',de='';
+// link personalizado (?de=código): guarda-o neste browser e limpa o endereço
+try{const q=new URLSearchParams(location.search).get('de');if(q&&/^[a-z0-9-]{3,40}$/.test(q)){localStorage.setItem('de',q);history.replaceState(null,'',location.pathname+location.hash)}de=localStorage.getItem('de')||''}catch(e){}
+try{vid=localStorage.getItem('vid')||'';if(!/^[a-z0-9]{8,24}$/.test(vid)){vid=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('vid',vid)}}catch(e){}
+// modelo do aparelho: só os browsers Chromium no Android o revelam (o iPhone não)
+const modelP=(navigator.userAgentData&&navigator.userAgentData.getHighEntropyValues?navigator.userAgentData.getHighEntropyValues(['model']).then(v=>{model=v.model||''}).catch(()=>{}):Promise.resolve());
+async function track(){  // regista a visita (não conta se no admin marcaste "não contar as minhas visitas")
+  try{if(localStorage.getItem('noTrack'))return}catch(e){}
+  await Promise.race([modelP,new Promise(r=>setTimeout(r,400))]);
+  let who={};try{who=JSON.parse(localStorage.getItem('me')||'{}')}catch(e){}
+  let ref='';
+  if(firstHit){try{ref=sessionStorage.getItem('ref');sessionStorage.removeItem('ref')}catch(e){}
+    if(!ref&&document.referrer&&!document.referrer.startsWith(location.origin))ref=document.referrer}
+  firstHit=false;
+  fetch('/api/hit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:location.pathname||'/',token:(typeof acct!=='undefined'&&acct&&acct.token)||'',ref:ref||'',vid,model,de,screen:screen.width+'x'+screen.height+'@'+(Math.round((devicePixelRatio||1)*100)/100),lang:(navigator.language||'').slice(0,12),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),name:who.name||'',ig:who.ig||''}),keepalive:true}).catch(()=>{})}
+
+/* ---- ícones oficiais (Instagram, Facebook e WhatsApp com o mesmo tamanho) ---- */
+let icoN=0;
+const ICON={
+ get ig(){const g='igg'+(++icoN);return `<svg class="ico" viewBox="0 0 40 40" aria-hidden="true"><defs><radialGradient id="${g}" cx="30%" cy="107%" r="150%"><stop offset="0" stop-color="#fdf497"/><stop offset=".05" stop-color="#fdf497"/><stop offset=".45" stop-color="#fd5949"/><stop offset=".6" stop-color="#d6249f"/><stop offset=".9" stop-color="#285aeb"/></radialGradient></defs><rect width="40" height="40" rx="11" fill="url(#${g})"/><rect x="10" y="10" width="20" height="20" rx="6" fill="none" stroke="#fff" stroke-width="2.2"/><circle cx="20" cy="20" r="4.8" fill="none" stroke="#fff" stroke-width="2.2"/><circle cx="25.6" cy="14.4" r="1.4" fill="#fff"/></svg>`},
+ get fb(){const c='fbc'+(++icoN);return `<svg class="ico" viewBox="0 0 40 40" aria-hidden="true"><clipPath id="${c}"><circle cx="20" cy="20" r="20"/></clipPath><circle cx="20" cy="20" r="20" fill="#1877f2"/><path clip-path="url(#${c})" fill="#fff" d="M27.8 25.8l.9-5.8h-5.6v-3.8c0-1.6.8-3.1 3.3-3.1h2.5V8.2s-2.3-.4-4.5-.4c-4.6 0-7.6 2.8-7.6 7.8V20h-5.1v5.8h5.1V40h6.3V25.8z"/></svg>`},
+ wa:'<svg class="ico" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#25d366"/><path fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round" d="M20 9.5a10.5 10.5 0 0 0-9 15.9L9.6 30.5l5.2-1.4A10.5 10.5 0 1 0 20 9.5z"/><path fill="#fff" d="M16.6 14.7c.2-.5.5-.5.8-.5h.6c.2 0 .5 0 .7.5l.9 2.1c.1.3 0 .5-.1.7l-.6.8c-.1.1-.2.3 0 .6.7 1.2 1.8 2.3 3 3 .3.1.5.1.6 0l.8-.9c.2-.2.5-.3.7-.1l2 1c.3.1.4.3.4.5 0 .8-.4 1.6-1 2-.8.5-2 .6-3.6-.1-2-.9-3.7-2.6-4.7-4.5-.7-1.5-.6-2.9-.3-3.9z"/></svg>',
+ cp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>'};
+
+/* ---- obras ---- */
+const itxt=i=>en(i,'text');
+const itemArt=i=>i.kind==='image'?`<img loading="lazy" src="${src(i)}" alt="">`:i.kind==='video'?`<video src="${src(i)}#t=0.5" preload="metadata" muted playsinline></video>`
+  :i.kind==='text'?`<div class="page"><b>${esc(ti(i))}</b>${esc(itxt(i).split('\n').slice(0,9).join('\n'))}</div>`:'<span>♪</span>';
+const postArt=p=>p.cover?`<img loading="lazy" src="/media/${p.cover}" alt="">`:p.media_type==='image'?`<img loading="lazy" src="/media/${p.file}" alt="">`
+  :p.file?`<video src="/media/${p.file}#t=0.5" preload="metadata" muted playsinline></video>`:`<span>${p.audio?'🎙':p.url?'↗':'❝'}</span>`;
+const framed=(art,badge)=>`<div class="frame"><div class="art">${art}${badge?`<i class="badge">${badge}</i>`:''}</div></div>`;
+// cada entrada = {t:'p' (opinião) | 'i' (música/escrita/podcast), o: objeto, d: data}
+const entry=(t,o)=>({t,o,d:o.date||''});
+const href=e=>e.t==='p'?`/opinioes/${e.o.id}`:`/${e.o.section}/${e.o.id}`;
+const artOf=e=>e.t==='p'?postArt(e.o):itemArt(e.o);
+const badgeOf=e=>e.o.audio?(e.t==='p'?'🎙 ':'♪ ')+T[L].audio:'';
+const cmc=e=>e.o.comments?' · '+T[L].cmn(e.o.comments):'';
+const metaOf=e=>(e.t==='p'?T[L].opinioes:T[L][e.o.section])+(e.d?' · '+sdate(e.d):'')+cmc(e);
+const flat=t=>(t||'').split(/\n+/).map(x=>x.trim()).filter(Boolean).join(' / ');
+const card=(e,meta)=>{const t=e.t==='p'?flat(ptx(e.o)):'';
+  return `<a class="card" href="${href(e)}">${framed(artOf(e),badgeOf(e))}<div class="cap"><h3>${esc(ti(e.o))}</h3><span class="mono">${meta}</span>${t?`<p>${esc(t.slice(0,110))}${t.length>110?'…':''}</p>`:''}</div></a>`};
+
+/* ---- router ---- */
+async function route(){
+  track();keyNav=null;
+  if(/^#\//.test(location.hash))history.replaceState(null,'',location.hash.slice(1));  // links antigos (#/...)
+  const s=decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g,'')),[sec,id]=s.split('/'),d=await data(),site=d.site;
+  document.documentElement.lang=L;
+  $('#logoname').textContent=site.name||'';document.title=site.name||'';
+  const has=k=>k==='opinioes'?d.posts.length:d.items.some(i=>i.section===k);
+  $('#nav').innerHTML=[...SECS,'teoria'].map((k,n)=>`<a href="/${k}" class="${sec===k?'on':''}"><b>${num(n+1)}</b>${T[L][k]}</a>`).join('');
+  document.querySelectorAll('#lg a').forEach(a=>a.classList.toggle('on',a.dataset.l===L));
+  footer(site);
+  if(sec==='privacidade'){m.innerHTML=`<article class="post"><h1 class="disp">${T[L].privacy}</h1><span class="rule"></span>${T[L].privacyTxt.map(t=>`<p style="margin-bottom:18px">${t}</p>`).join('')}<p style="margin-top:40px;font-size:14px;color:var(--dim)">${L==='en'?'Credits — guitar sounds on the Theory page: recordings by Nicholaus Brosowsky, licensed CC BY 3.0.':'Créditos — sons de guitarra da página Teoria: gravações de Nicholaus Brosowsky, licença CC BY 3.0.'}</p></article>`}
+  else if(sec==='teoria'){await loadTheory();if(location.pathname.split('/')[1]!=='teoria')return;theoryPage(id||'instrumentos')}
+  else if(sec==='opinioes')id?postPage(d,id):listPage(d,'opinioes');
+  else if(SECS.includes(sec))id?itemPage(d,sec,id):listPage(d,sec);
+  else home(d);
+  reveal();scrollTo(0,0)}
+
+let theoryP=null;  // página de teoria: o script só é carregado quando se abre
+function loadTheory(){return theoryP||(theoryP=new Promise((ok,ko)=>{const sc=document.createElement('script');sc.src='/s/teoria.js?v=12';sc.onload=ok;sc.onerror=()=>{theoryP=null;ko()};document.head.appendChild(sc)}))}
+
+function footer(site){  // rodapé minimalista: © · secções · privacidade · redes
+  const IG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1" fill="currentColor" stroke="none"/></svg>';
+  const FB='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><path fill="currentColor" stroke="none" d="M13.6 21.8v-7.4h2.3l.35-2.7H13.6V9.9c0-.78.22-1.3 1.34-1.3h1.43V6.2a19 19 0 0 0-2.08-.1c-2.06 0-3.47 1.26-3.47 3.57v2.03H8.5v2.7h2.32v7.4z"/></svg>';
+  $('#ft').innerHTML=`<div class="wrap fmin mono"><span>© ${new Date().getFullYear()} ${esc(site.name||'')}</span>`
+   +`<nav><a href="/privacidade">${T[L].privacy}</a></nav>`
+   +`<span class="fsoc">${site.instagram?`<a class="ig" href="${esc(site.instagram)}" target="_blank" rel="noopener me" aria-label="Instagram" title="Instagram">${IG}</a>`:''}`
+   +`${site.facebook?`<a class="fb" href="${esc(site.facebook)}" target="_blank" rel="noopener me" aria-label="Facebook" title="Facebook">${FB}</a>`:''}</span></div>`}
+
+function home(d){
+  const site=d.site,intro=en(site,'intro');
+  let lines=intro.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(lines.length>1&&lines[0].toLowerCase()===(site.name||'').trim().toLowerCase())lines=lines.slice(1);  // o nome já está no logo
+  const rec=[...d.posts.map(p=>entry('p',p)),...d.items.map(i=>entry('i',i))].sort((a,b)=>b.d.localeCompare(a.d));
+  let h=`<section class="hero">`
+    +(site.photo?`<figure class="portrait"><img src="/media/${site.photo}" alt="${esc(site.name)}"></figure>`:'')
+    +`<div class="hero-text">`
+    +`<p class="intro">${lines.map((l,k)=>`<span class="line" style="--d:${.5+k*.18}s">${esc(l)}</span>`).join('')}</p>`
+    +`</div></section>`;
+  if(rec.length){
+    const f=rec[0],fx=flat(f.t==='p'?ptx(f.o):itxt(f.o));
+    h+=`<div class="side rv" id="destaque"><span class="mono">${T[L].featured}</span></div>`
+      +`<a class="feature rv" href="${href(f)}">${framed(artOf(f),badgeOf(f))}<div><span class="mono">${metaOf(f)}</span><h2 class="disp">${esc(ti(f.o))}</h2>`
+      +(fx?`<p>${esc(fx.slice(0,260))}${fx.length>260?'…':''}</p>`:'')+`<span class="more mono">${f.t==='p'?T[L].readmore:T[L].open} →</span></div></a>`;
+    const more=rec.slice(1,9);
+    if(more.length)h+=`<div class="side rv"><span class="mono">${T[L].recent}</span></div><div class="grid salon">${more.map(e=>card(e,metaOf(e))).join('')}</div>`;
+  }
+  m.innerHTML=h;
+  const pf=m.querySelector('.portrait'),ht=m.querySelector('.hero-text');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{pf?.classList.add('in');ht.classList.add('in')}))}
+
+const ROMAN=['I','II','III','IV'];
+function head(k){return `<div class="sec-head"><h1 class="disp">${T[L][k]}</h1><span class="rule"></span></div>`}
+
+function listPage(d,k){
+  const es=k==='opinioes'?d.posts.map(p=>entry('p',p)):d.items.filter(i=>i.section===k).map(i=>entry('i',i));
+  m.innerHTML=head(k)+(es.length?`<div class="grid salon">${es.map((e,n)=>card(e,(e.d?sdate(e.d):'')+cmc(e))).join('')}</div>`
+    :`<div class="soon"><b>${T[L].soon}</b><span>${T[L].soonTxt}</span></div>`)}
+
+function prevNext(list,idx,mk){  // ligações anterior / seguinte (+ setas do teclado)
+  const p=list[idx-1],n=list[idx+1];
+  keyNav={prev:p?mk(p):null,next:n?mk(n):null};
+  return (p||n)?`<nav class="pn mono">${p?`<a href="${mk(p)}">← ${T[L].prev}<b>${esc(ti(p))}</b></a>`:''}${n?`<a class="nx" href="${mk(n)}">${T[L].next} →<b>${esc(ti(n))}</b></a>`:''}</nav>`:''}
+
+function notFound(){m.innerHTML=`<div class="soon"><b>${T[L].notfound}</b><span><a class="back" href="/">← ${esc(cache.site.name||'')}</a></span></div>`}
+
+const tape=(f,label)=>`<div class="tape"><div class="mono"><span class="eq"><i></i><i></i><i></i></span>${label}</div><audio src="/media/${esc(f)}" controls preload="metadata" onplay="this.parentNode.classList.add('playing')" onpause="this.parentNode.classList.remove('playing')"></audio></div>`;
+function itemPage(d,k,id){
+  const list=d.items.filter(i=>i.section===k),idx=list.findIndex(i=>i.id===id),i=list[idx];
+  if(!i)return notFound();
+  const media=i.kind==='text'?'':i.kind==='image'?`<div class="frame"><img src="${src(i)}" alt="${esc(ti(i))}"></div>`
+    :i.kind==='video'?`<video src="${src(i)}" controls playsinline preload="metadata"></video>`
+    :`<div class="tape"><div class="mono"><span class="eq"><i></i><i></i><i></i></span>${esc(ti(i))}</div><audio src="${src(i)}" controls preload="metadata" onplay="this.parentNode.classList.add('playing')" onpause="this.parentNode.classList.remove('playing')"></audio></div>`;
+  m.innerHTML=`<article class="post"><a class="back mono" href="/${k}">← ${T[L][k]}</a><span class="date mono">${i.date?fdate(i.date):'Nº '+num(idx+1)}</span><h1 class="disp">${esc(ti(i))}</h1><span class="rule"></span>`
+    +(media?`<div class="media">${media}</div>`:'')+(i.audio?tape(i.audio,'♪ '+esc(ti(i))):'')+(itxt(i)?(media?`<details class="readtxt"><summary class="mono">${T[L].readtxt}</summary><div class="poem">${esc(itxt(i))}</div></details>`:`<div class="poem">${esc(itxt(i))}</div>`):'')+shareBar(i)+commentsSection(k+'/'+i.id)+prevNext(list,idx,x=>`/${k}/${x.id}`)+'</article>';
+  document.title=ti(i);loadComments(k+'/'+i.id)}
+
+function postPage(d,id){
+  const all=d.posts,idx=all.findIndex(x=>x.id===id),p=all[idx];
+  if(!p)return notFound();
+  let media='';
+  if(p.media_type==='image')media=`<div class="frame"><img src="/media/${p.file}" alt="${esc(ti(p))}"></div>`;
+  else if(p.file)media=`<video src="/media/${p.file}" controls playsinline preload="metadata"></video>`;
+  if(p.embed)media+=`<iframe class="${esc(p.embed.kind)}" src="${esc(p.embed.src)}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
+  if(p.media_type==='link'&&p.url&&p.embed)media+=`<a class="srclink mono" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${T[L].openon} ${esc(host(p.url).replace(/\.(com|pt|net|org)$/,''))} ↗</a>`;
+  else if(p.media_type==='link'&&p.url)media+=`<a class="lk" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${!p.embed&&p.cover?`<img src="/media/${p.cover}" alt="">`:''}<span><b>${esc(en(p,'link_title')||host(p.url))}</b><small>${p.link_title?esc(host(p.url))+' · ':''}${T[L].read} ↗</small></span></a>`;
+  m.innerHTML=`<article class="post"><a class="back mono" href="/opinioes">← ${T[L].opinioes}</a><span class="date mono">${fdate(p.date)}</span><h1 class="disp">${esc(ti(p))}</h1><span class="rule"></span>`
+    +(media?`<div class="media">${media}</div>`:'')
+    +(p.music?tape(p.music,'♪ '+esc(ti(p))):'')
+    +(p.audio?tape(p.audio,T[L].listen):'')+shareBar(p)
+    +(ptx(p)?`<div class="txt">${ptx(p).trim().split(/\n\s*\n/).map(par=>`<p>${esc(par).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:'')
+    +commentsSection('opinioes/'+p.id)
+    +prevNext(all,idx,x=>`/opinioes/${x.id}`)+'</article>';
+  document.title=ti(p);loadComments('opinioes/'+p.id)}
+
+/* ---- comentários ---- */
+let me={};try{me=JSON.parse(localStorage.getItem('me')||'{}')}catch(e){}
+let acct=null;try{acct=JSON.parse(localStorage.getItem('acct')||'null')}catch(e){}
+if(acct&&acct.token)fetch('/api/me',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:acct.token})})
+  .then(async r=>{if(r.status===404){acct=null;try{localStorage.removeItem('acct')}catch(e){}}else if(r.ok){const u=await r.json();acct={...acct,...u};try{localStorage.setItem('acct',JSON.stringify(acct))}catch(e){}}}).catch(()=>{});
+const commentHTML=c=>`<div class="cm"><div class="cmh"><span class="cav" aria-hidden="true">${esc((c.name||'?').trim().charAt(0).toUpperCase())}</span><b>${esc(c.name)}</b>${c.ig?`<a href="https://www.instagram.com/${encodeURIComponent(c.ig)}/" target="_blank" rel="nofollow ugc noopener">@${esc(c.ig)}</a>`:''}<span class="mono">${fdate(c.t.slice(0,10))}</span></div><p>${esc(en(c,'text'))}</p>`
+  +(c.reply?`<div class="rp"><span class="mono">${esc(cache.site.name||'')}${T[L].replied}</span><p>${esc(en(c,'reply'))}</p></div>`:'')+'</div>';
+const commentsSection=key=>`<section class="comments" id="comentarios"><h2 class="mono">${T[L].comments}</h2><div id="clist"></div><div id="cbox">${commentForm(key)}</div></section>`;
+async function loadComments(key){
+  const cs=await getJSON('/api/comments?page='+encodeURIComponent(key),[]),el=$('#clist');if(!el)return;
+  el.innerHTML=cs.length?cs.map(commentHTML).join(''):`<p class="nocm">${T[L].nocm}</p>`;
+  el.previousElementSibling.textContent=T[L].comments+(cs.length?' · '+cs.length:'')}
+function commentForm(key){
+  const k=esc(key),fld=(lab,html,cls='')=>`<label class="fld ${cls}"><span class="mono">${lab}</span>${html}</label>`;
+  if(acct)return `<form class="cform" onsubmit="sendComment(event,'${k}')"><h3>${T[L].leave}</h3>`
+    +`<p class="as">${T[L].as} <b>${esc(acct.name)}</b> · <a href="#" onclick="event.preventDefault();signOut('${k}')">${T[L].notyou}</a></p>`
+    +fld(T[L].say,`<textarea name="text" required maxlength="1500" rows="4"></textarea>`,'full')
+    +`<div class="row"><button>${T[L].send}</button></div><p class="cmsg" role="status"></p></form>`;
+  return `<form class="cform" onsubmit="sendComment(event,'${k}')"><h3>${T[L].leave}</h3>`
+    +fld(T[L].name,`<input name="name" required maxlength="60" value="${esc(me.name||'')}" autocomplete="name">`)
+    +fld(T[L].ig,`<input name="ig" maxlength="31" value="${me.ig?'@'+esc(me.ig):''}" autocapitalize="off" placeholder="@">`)
+    +fld(T[L].say,`<textarea name="text" required maxlength="1500" rows="4"></textarea>`,'full')
+    +`<input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">`
+    +`<div class="row"><label class="acc"><input type="checkbox" name="accept" required><span>${T[L].accept}</span></label><button>${T[L].send}</button></div><p class="cmsg" role="status"></p></form>`}
+function signOut(key){acct=null;try{localStorage.removeItem('acct')}catch(e){};$('#cbox').innerHTML=commentForm(key)}
+async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error((await r.text())||T[L].cmerr);return r.json()}
+async function sendComment(ev,key){
+  ev.preventDefault();const f=ev.target,b=f.querySelector('button'),msg=f.querySelector('.cmsg'),label=b.textContent;
+  b.disabled=true;b.textContent=T[L].sending;msg.textContent='';
+  try{
+    if(!acct){
+      const a=await post('/api/register',{name:f.name.value,ig:f.ig.value,accept:f.accept.checked,website:f.website.value});
+      if(!a.token)throw new Error(T[L].cmerr);
+      acct={token:a.token,name:a.name,ig:a.ig};try{localStorage.setItem('acct',JSON.stringify(acct))}catch(e){};}
+    await post('/api/comments',{page:key,token:acct.token,text:f.text.value});
+    const [sec,id]=key.split('/'),o=(sec==='opinioes'?cache.posts:cache.items).find(x=>x.id===id);if(o)o.comments=(o.comments||0)+1;
+    await loadComments(key);$('#cbox').innerHTML=commentForm(key);
+    $('#clist').lastElementChild?.scrollIntoView({behavior:'smooth',block:'center'})}
+  catch(e){msg.textContent=e.message;b.disabled=false;b.textContent=label}}
+
+/* revela os blocos à medida que aparecem no ecrã */
+const io='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -8% 0px'}):null;
+function reveal(){m.querySelectorAll('.grid>.card,.sec-head,.post>*,.soon').forEach((el,k)=>{if(!el.classList.contains('rv')){el.classList.add('rv');el.style.setProperty('--d',(k%4)*.08+'s')}});
+  m.querySelectorAll('.rv:not(.in)').forEach(el=>io?io.observe(el):el.classList.add('in'))}
+
+/* ---- partilha ---- */
+let shareUrl='';
+function shareBar(o){
+  const u=location.origin+location.pathname,e=encodeURIComponent(u);shareUrl=u;
+  return `<div class="share">`
+    +`<a href="https://www.facebook.com/sharer/sharer.php?u=${e}" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook">${ICON.fb}</a>`
+    +`<a href="https://wa.me/?text=${encodeURIComponent(ti(o)+' ')}${e}" target="_blank" rel="noopener" title="WhatsApp" aria-label="WhatsApp">${ICON.wa}</a>`
+    +`<button onclick="shareIG()" title="Instagram" aria-label="Instagram">${ICON.ig}</button>`
+    +`<button class="cp" onclick="copyLink(T[L].copied)" title="${T[L].copy}" aria-label="${T[L].copy}">${ICON.cp}</button>`
+    +`<span class="msg" id="smsg" role="status"></span></div>`}
+async function copyLink(msg){
+  try{await navigator.clipboard.writeText(shareUrl)}catch(e){prompt(T[L].copy,shareUrl);return}
+  const s=$('#smsg');s.textContent=msg;s.classList.add('on');clearTimeout(s._t);s._t=setTimeout(()=>s.classList.remove('on'),3000)}
+function shareIG(){  // no telemóvel abre o menu de partilha (onde está o Instagram); no PC copia o link
+  if(navigator.share&&matchMedia('(pointer:coarse)').matches)navigator.share({title:document.title,url:shareUrl}).catch(()=>{});
+  else copyLink(T[L].igcopied)}
+
+onkeydown=e=>{if(!keyNav||/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
+  if(e.key==='ArrowLeft'&&keyNav.prev)go(keyNav.prev);
+  if(e.key==='ArrowRight'&&keyNav.next)go(keyNav.next)};
+/* navegação sem recarregar a página (os endereços são reais, para a Google os ver) */
+function go(url){if(url!==location.pathname+location.search)history.pushState(null,'',url);route()}
+document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||a.target||e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+  const u=new URL(a.getAttribute('href'),location.href);if(u.origin!==location.origin)return;
+  if(/^\/(admin|media|api|auth|p|s)(\/|$)|\.(xml|txt|js|webmanifest)$/.test(u.pathname))return;
+  if(u.hash&&u.pathname===location.pathname)return;  // âncora na própria página
+  e.preventDefault();go(u.pathname)});
+onpopstate=route;onhashchange=()=>{if(/^#\//.test(location.hash))route()};route();
+</script></body></html>
