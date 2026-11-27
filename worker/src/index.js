@@ -477,6 +477,11 @@ async function route(req, env, ctx, url) {
     const more = { region: cf.region, cp: cf.postalCode, ll: cf.latitude && `${cf.latitude},${cf.longitude}`, asn: cf.asn && "AS" + cf.asn,
       colo: cf.colo, http: cf.httpProtocol, tls: cf.tlsVersion, rtt: cf.clientTcpRtt, tzip: cf.timezone, eu: cf.isEUCountry === "1",
       plat: ex.plat, cores: +ex.cores || 0, mem: +ex.mem || 0, net: ex.net, touch: +ex.touch || 0, dark: !!ex.dark, vp: ex.vp, langs: ex.langs, dnt: !!ex.dnt, pwa: !!ex.pwa };
+    if (ex.camp && typeof ex.camp === "object") {
+      const c = ex.camp, clk = ["fbclid", "igshid", "gclid", "ttclid", "li_fat_id"].filter((k) => c[k]);
+      more.utm = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"].map((k) => c[k]).filter(Boolean).map(String).join(" / ");
+      more.click = clk.map((k) => ({ fbclid: "clique Facebook/Instagram", igshid: "partilha Instagram", gclid: "anúncio Google", ttclid: "TikTok", li_fat_id: "LinkedIn" })[k]).join(", ");
+    }
     for (const [k, v] of Object.entries(more)) if (v) rec[k] = typeof v === "string" ? v.replace(/[<>]/g, "").slice(0, 80) : v;
     const code = String(d.de || "").slice(0, 40);
     const link = code ? (await kvGet(env, "links", {}))[code] : null;
