@@ -4,6 +4,7 @@ compatibility_date = "2026-11-01"
 
 # api.joaocostart.com -> este Worker (a Cloudflare cria o registo DNS sozinha)
 routes = [{ pattern = "api.joaocostart.com", custom_domain = true }]
+workers_dev = false
 
 [vars]
 SITE = "https://joaocostart.com"
