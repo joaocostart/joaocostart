@@ -343,7 +343,7 @@ function engOf(e){if(!e)return [];const sc=Object.entries(e.scroll||{}).map(([p,
  return [e.secs&&'⏱ '+(e.secs>=60?Math.round(e.secs/60)+' min':e.secs+'s'),sc.length&&'leu '+sc.join(', '),e.plays.length&&'♪ '+e.plays.join(', '),e.links.length&&'clicou '+[...new Set(e.links)].join(', '),e.gpu&&'GPU '+e.gpu,e.bat&&'bateria '+e.bat].filter(Boolean)}
 function moreCols(x){const r=x.r||{},j=a=>esc(a.filter(Boolean).join(' · ')||'—'),[os,br]=uaInfo(r.ua),
  c=[['O que fez',engOf(x.eng)],['Origem',[r.utm&&'campanha '+r.utm,r.click,r.ref&&r.ref.replace(/^https?:\/\//,'').slice(0,60)]],
- ['Local exato',[r.region,r.cp,r.ll,r.tzip,r.eu&&'UE']],['Sistema',[os,br,r.plat,r.langs,r.dnt&&'Do Not Track',r.pwa&&'app instalada']],
+ ['Local exato',[x.eng&&x.eng.loc&&'📍 GPS '+x.eng.loc,r.region,r.cp,r.ll,r.tzip,r.eu&&'UE']],['Sistema',[os,br,r.plat,r.langs,r.dnt&&'Do Not Track',r.pwa&&'app instalada']],
  ['Hardware',[r.cores&&r.cores+' núcleos',r.mem&&r.mem+' GB RAM',x.eng&&x.eng.gpu,x.eng&&x.eng.bat&&'bateria '+x.eng.bat,r.touch&&r.touch+' toques']],
  ['Ecrã',[r.screen,r.vp&&'janela '+r.vp,r.dark&&'modo escuro']],['Ligação',[x.ip4&&x.ip!==x.ip4&&'IPv6 '+x.ip,r.asn,r.net,r.http,r.tls,r.rtt&&r.rtt+' ms',r.colo&&'CF '+r.colo]]];
  return c.map(([l,a])=>`<td class=c-more data-l="${l}"><small>${j(a)}</small></td>`).join('')}
