@@ -111,7 +111,7 @@
     }
     for (const [path, v] of entries) if (v === null) // por fim, apaga os ficheiros substituídos
       await realFetch(`${API}/api/media/${path.split("/").pop()}`, { method: "DELETE", headers: auth() });
-    if (window.toast) setTimeout(() => window.toast("Guardado ✓ — aparece no site daqui a 5-20 minutos"), 2700);
+    if (window.toast) setTimeout(() => window.toast("Guardado ✓ — já aparece no site"), 2700);
   }
   const UP = (name) => `data/uploads/${name}`;
   const newName = (ext) => crypto.randomUUID().replace(/-/g, "") + "." + ext;

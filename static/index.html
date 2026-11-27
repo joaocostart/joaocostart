@@ -298,8 +298,16 @@ const num=n=>String(n).padStart(2,'0');
 const API=window.API_BASE||'',BV=window.BUILD?'?b='+window.BUILD:'';  // BV: cada publicação lê o conteúdo novo (sem cache antiga)
 const _API0=API;  // servidor dos comentários/visitas (no GitHub Pages: api.joaocostart.com)
 async function getJSON(u,def){try{const r=await fetch(u);return r.ok?await r.json():def}catch(e){return def}}
+// ficheiros acabados de publicar no admin ainda não estão no site: vai buscá-los ao Worker
+if(API)document.addEventListener('error',e=>{const el=e.target,s=el&&el.getAttribute&&el.getAttribute('src'),m=s&&s.match(/^\/media\/([0-9a-f]{32}\.[a-z0-9]{2,5})$/);if(m)el.src=API+'/api/media/'+m[1]},true);
 async function data(){  // site + todos os itens + opiniões (uma vez por carregamento)
-  if(!cache){const[site,items,posts,cn]=await Promise.all([getJSON('/api/site'+BV,{}),getJSON('/api/items'+BV,[]),getJSON('/api/posts'+BV,[]),API?getJSON(API+'/api/counts',null):null]);
+  if(!cache){let[site,items,posts,cn,lv]=await Promise.all([getJSON('/api/site'+BV,{}),getJSON('/api/items'+BV,[]),getJSON('/api/posts'+BV,[]),API?getJSON(API+'/api/counts',null):null,API?getJSON(API+'/api/export',null):null]);
+    if(lv&&lv.version){  // conteúdo em direto do Worker: as edições do admin aparecem logo (o GitHub só as copia de vez em quando)
+      const mg=(o,st)=>{for(const k in st||{})if(k.endsWith('_tr'))st[k.slice(0,-3)]===o[k.slice(0,-3)]?o[k]=st[k]:delete o[k];return o};  // mantém as traduções se o texto não mudou
+      const byId=(l,o)=>l.find(x=>x.id===o.id);
+      if(lv.site)site=mg({...site,...lv.site},site);
+      if(lv.items)items=lv.items.map(i=>mg(i,byId(items,i)));
+      if(lv.posts)posts=lv.posts.map(p=>mg(p,byId(posts,p)))}
     if(cn){items.forEach(i=>i.comments=cn[i.section+'/'+i.id]||0);posts.forEach(p=>p.comments=cn['opinioes/'+p.id]||0)}  // nº de comentários em direto
     cache={site,items,posts}}
   return cache}

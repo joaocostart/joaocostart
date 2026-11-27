@@ -123,7 +123,8 @@ def ssr(path):
         return 200, site.get("name", ""), " ".join(lines) or site.get("name", ""), site.get("photo"), body
     if sec == "teoria":
         topics = ["Notas e braço da guitarra", "Acordes (todos, com diagrama e som)", "Intervalos", "Escalas e modos",
-                  "Campo harmónico", "Progressões", "Círculo de quintas", "Ritmo e compasso"]
+                  "Campo harmónico", "Progressões", "Círculo de quintas", "Ritmo e compasso",
+                  "Géneros musicais", "Instrumentos e onde se enquadram"]
         return (200, "Teoria musical de guitarra",
                 "Teoria musical de guitarra: notas, todos os acordes com diagrama e som, escalas, intervalos, campo harmónico e mais.",
                 None, "<h1>Teoria musical de guitarra</h1><ul>" + "".join(f"<li>{t}</li>" for t in topics) + "</ul>")
