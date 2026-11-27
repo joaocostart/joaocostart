@@ -452,6 +452,27 @@ async function route(req, env, ctx, url) {
     await DB.batch(q);
     return empty();
   }
+  if (p === "/api/ev" && m === "POST") { // o que a pessoa fez numa página (só com consentimento)
+    let d = {}; try { d = JSON.parse(await req.text()); } catch { return empty(); }
+    const vid = String(d.vid || ""); if (!/^[a-z0-9]{8,24}$/.test(vid)) return empty();
+    const row = await DB.prepare("SELECT id FROM visits WHERE vid=? AND json_extract(data,'$.path')=? AND t>? ORDER BY t DESC LIMIT 1")
+      .bind(vid, String(d.path || "/").slice(0, 200), ago(12 * 3600)).first()
+      || await DB.prepare("SELECT id FROM visits WHERE vid=? ORDER BY t DESC LIMIT 1").bind(vid).first();
+    if (!row) return empty();
+    const str = (v, n) => String(v || "").replace(/[<>]/g, "").slice(0, n);
+    if (d.who) { const w = whoLabel(str(d.who.name, 40), str(d.who.ig, 40).replace(/^@/, "")); if (w) await DB.prepare("UPDATE visits SET data=json_set(data,'$.who',?) WHERE id=?").bind(w, row.id).run(); }
+    if (d.eng && typeof d.eng === "object") {
+      const e = d.eng, arr = (a) => (Array.isArray(a) ? a.slice(0, 10).map((x) => str(x, 80)) : []);
+      const eng = { secs: Math.min(86400, +e.secs || 0), scroll: Math.min(100, +e.scroll || 0), links: arr(e.links), plays: arr(e.plays), gpu: str(e.gpu, 80), bat: str(e.bat, 30) };
+      const prev = await DB.prepare("SELECT json_extract(data,'$.eng') e FROM visits WHERE id=?").bind(row.id).first();
+      let o = {}; try { o = JSON.parse((prev && prev.e) || "{}"); } catch { }
+      eng.secs += o.secs || 0; eng.scroll = Math.max(eng.scroll, o.scroll || 0);
+      eng.links = [...(o.links || []), ...eng.links].slice(0, 20); eng.plays = [...(o.plays || []), ...eng.plays].slice(0, 20);
+      eng.gpu ||= o.gpu || ""; eng.bat ||= o.bat || "";
+      await DB.prepare("UPDATE visits SET data=json_set(data,'$.eng',json(?)) WHERE id=?").bind(JSON.stringify(eng), row.id).run();
+    }
+    return empty();
+  }
   if (p === "/api/hit" && m === "POST") {
     const ua = req.headers.get("User-Agent") || "";
     if (!ua || BOTS.test(ua)) return empty();
