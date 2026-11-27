@@ -20,7 +20,7 @@ h2.big{margin-top:30px}
 .scrollx{overflow:auto;max-height:620px;border:1px solid #252b2e;border-radius:6px}
 .scrollx{scrollbar-width:auto;scrollbar-color:#86b39b #121618;cursor:grab}.scrollx.drag{cursor:grabbing;user-select:none}
 .scrollx::-webkit-scrollbar{height:12px;width:10px}.scrollx::-webkit-scrollbar-thumb{background:#86b39b;border-radius:6px}.scrollx::-webkit-scrollbar-track{background:#121618}
-.vt .c-more{min-width:240px;max-width:340px;color:#959d99}.vt .c-where,.vt .c-dev{max-width:240px}
+.vt .c-more{min-width:150px;max-width:260px;color:#959d99}.vt .c-where,.vt .c-dev{max-width:240px}
 table.vt{font-size:14px;min-width:820px}.vt th{position:sticky;top:0;background:#121618;text-align:left;font-weight:500;color:#86b39b;padding:8px 6px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
 .vt td{padding:8px 6px}.vt tr.me td{opacity:.45}.vt b{font-weight:500;color:#eef0ec}.vt .anon{color:#959d99}
 .vt button{width:auto;padding:1px 7px;margin:0 0 0 4px;font-size:12px}.vt .pg{max-width:230px;color:#959d99}
@@ -158,7 +158,7 @@ td a{color:#e4e7e3}summary{cursor:pointer;color:#858d89;font-size:14px;margin-to
 <small>Pessoas diferentes (páginas vistas entre parênteses). Os dados ficam 90 dias.</small>
 <p class=ct>Cada visita</p>
 <small>Uma linha por visita (30 min sem atividade = visita nova). Carrega no nome para ver a ficha completa dessa pessoa; usa ✎ para lhe dar um nome.</small>
-<div class=scrollx><table class=vt><thead><tr><th>Quando</th><th>Quem</th><th>Onde</th><th>Aparelho</th><th>Veio de</th><th>Viu</th><th>Mais</th></tr></thead><tbody id=v_sessions></tbody></table></div>
+<div class=scrollx><table class=vt><thead><tr><th>Quando</th><th>Quem</th><th>Onde</th><th>Aparelho</th><th>Veio de</th><th>Viu</th><th>O que fez</th><th>Origem</th><th>Local exato</th><th>Sistema</th><th>Hardware</th><th>Ecrã</th><th>Ligação</th></tr></thead><tbody id=v_sessions></tbody></table></div>
 <p class=ct>Links personalizados</p>
 <small>Cria um link para cada pessoa a quem envias o site. Quando ela o abrir, as visitas dela aparecem com o nome.</small>
 <div class=mebtns><input id=l_name placeholder="Nome da pessoa (ex.: Ana)" onkeydown="if(event.key==='Enter')addLink()"><button onclick=addLink() style="width:auto">Criar link</button></div>
@@ -341,6 +341,12 @@ function uaInfo(ua){ua=ua||'';let m,os='',br='';
  return [os,br]}
 function engOf(e){if(!e)return [];const sc=Object.entries(e.scroll||{}).map(([p,v])=>p+' '+v+'%');
  return [e.secs&&'⏱ '+(e.secs>=60?Math.round(e.secs/60)+' min':e.secs+'s'),sc.length&&'leu '+sc.join(', '),e.plays.length&&'♪ '+e.plays.join(', '),e.links.length&&'clicou '+[...new Set(e.links)].join(', '),e.gpu&&'GPU '+e.gpu,e.bat&&'bateria '+e.bat].filter(Boolean)}
+function moreCols(x){const r=x.r||{},j=a=>esc(a.filter(Boolean).join(' · ')||'—'),[os,br]=uaInfo(r.ua),
+ c=[['O que fez',engOf(x.eng)],['Origem',[r.utm&&'campanha '+r.utm,r.click,r.ref&&r.ref.replace(/^https?:\/\//,'').slice(0,60)]],
+ ['Local exato',[r.region,r.cp,r.ll,r.tzip,r.eu&&'UE']],['Sistema',[os,br,r.plat,r.langs,r.dnt&&'Do Not Track',r.pwa&&'app instalada']],
+ ['Hardware',[r.cores&&r.cores+' núcleos',r.mem&&r.mem+' GB RAM',x.eng&&x.eng.gpu,x.eng&&x.eng.bat&&'bateria '+x.eng.bat,r.touch&&r.touch+' toques']],
+ ['Ecrã',[r.screen,r.vp&&'janela '+r.vp,r.dark&&'modo escuro']],['Ligação',[x.ip4&&x.ip!==x.ip4&&'IPv6 '+x.ip,r.asn,r.net,r.http,r.tls,r.rtt&&r.rtt+' ms',r.colo&&'CF '+r.colo]]];
+ return c.map(([l,a])=>`<td class=c-more data-l="${l}"><small>${j(a)}</small></td>`).join('')}
 function moreOf(r){r=r||{};const ref=(r.ref||'').replace(/^https?:\/\//,'').slice(0,50);return [...uaInfo(r.ua),ref&&'de '+ref,r.utm&&'campanha '+r.utm,r.click,r.region&&r.region+(r.cp?' '+r.cp:''),r.asn,r.ip4&&r.ip!==r.ip4&&'IPv6 '+r.ip,r.plat,r.cores&&r.cores+' núcleos',r.mem&&r.mem+' GB RAM',r.net&&'rede '+r.net,r.touch&&'tátil',r.vp&&'janela '+r.vp,r.dark&&'modo escuro',r.pwa&&'app instalada',r.langs,r.dnt&&'Do Not Track',r.http,r.tls,r.rtt&&'latência '+r.rtt+'ms',r.colo&&'CF '+r.colo].filter(Boolean)}
 function moreFacts(ss,fact,uniq){const g=k=>uniq(ss.map(x=>(x.r||{})[k]).filter(v=>v!==true).map(String));return fact('IPv4',uniq(ss.map(x=>x.ip4)))+fact('Campanha (UTM)',g('utm'))+fact('Tipo de clique',g('click'))+fact('Sistema / browser',uniq(ss.map(x=>uaInfo((x.r||{}).ua).filter(Boolean).join(' · '))))+fact('Endereço de origem',g('ref'))+fact('O que fez',ss.flatMap(x=>engOf(x.eng)))+fact('Região',g('region'))+fact('Código postal',g('cp'))+fact('Coordenadas',uniq(ss.map(x=>(x.r||{}).ll)).map(String))+fact('ASN',g('asn'))+fact('Sistema',g('plat'))+fact('Núcleos CPU',g('cores'))+fact('RAM (GB)',g('mem'))+fact('Rede',g('net'))+fact('Janela',g('vp'))+fact('Idiomas',g('langs'))+fact('Tátil',g('touch'))+fact('Modo escuro',ss.some(x=>(x.r||{}).dark)?'sim':'')+fact('App instalada',ss.some(x=>(x.r||{}).pwa)?'sim':'')+fact('Do Not Track',ss.some(x=>(x.r||{}).dnt)?'sim':'')+fact('Protocolo',uniq(ss.map(x=>[(x.r||{}).http,(x.r||{}).tls].filter(Boolean).join(' '))))+fact('Latência (ms)',g('rtt'))+fact('Datacenter CF',g('colo'))+fact('User agent',uniq(ss.map(x=>(x.r||{}).ua)))}
 function renderSessions(ss){
@@ -350,7 +356,7 @@ function renderSessions(ss){
     +`<td class=c-who><button class="who ${x.named?'':'anon'}" data-key="${esc(x.key)}" onclick="openProfile(this.dataset.key)">${esc(x.me?'Tu':x.who)}</button>${x.me?'<span class=tagme>tu</span>':''}<button title="dar nome" onclick="nameVisitor('${k}','${esc(id)}','${esc(x.named&&!x.me?x.who:'')}')">✎</button><br><small>${esc(x.ip4||x.ip)}</small></td>`
     +`<td class=c-where data-l="Onde">${esc(x.geo||'—')}<br><small>${esc(x.isp||'')}${x.rdns?'<br>'+esc(x.rdns):''}</small></td>`
     +`<td class=c-dev data-l="Aparelho">${esc(x.model||x.dev.split(' · ')[0])}<br><small>${esc(x.model?x.dev:x.dev.split(' · ')[1]||'')}${x.screen?' · '+esc(x.screen.split('@')[0]):''}${x.lang?' · '+esc(x.lang):''}</small></td>`
-    +`<td class=c-src data-l="Veio de">${esc(x.source)}</td><td class="pg c-pages" data-l="Viu" title="${esc(x.pages.join(' → '))}">${x.pages.slice(0,4).map(esc).join(' → ')}${x.pages.length>4?` <small>(+${x.pages.length-4})</small>`:''}</td><td class=c-more data-l="Mais"><small>${esc([...engOf(x.eng),...moreOf(x.r)].join(' · '))}</small></td></tr>`}).join(''):'<tr><td colspan=7><small>Ainda sem visitas.</small></td></tr>'}
+    +`<td class=c-src data-l="Veio de">${esc(x.source)}</td><td class="pg c-pages" data-l="Viu" title="${esc(x.pages.join(' → '))}">${x.pages.slice(0,4).map(esc).join(' → ')}${x.pages.length>4?` <small>(+${x.pages.length-4})</small>`:''}</td>${moreCols(x)}</tr>`}).join(''):'<tr><td colspan=13><small>Ainda sem visitas.</small></td></tr>'}
 function openProfile(key){
   const ss=(_v.sessions||[]).filter(x=>x.key===key);if(!ss.length)return;
   const f=ss[ss.length-1],l=ss[0],uniq=a=>[...new Set(a.filter(Boolean))],mins=ss.reduce((t,x)=>t+Math.max(1,Math.round((new Date(x.end)-new Date(x.start))/60000)),0);
