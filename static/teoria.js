@@ -455,7 +455,7 @@ function render(topic){
   m.innerHTML=`<div class="sec-head"><h1 class="disp">${L==='en'?'Theory':'Teoria'}</h1><span class="rule"></span></div>`
    +`<div class="th"><div class="th-side mono">${TOPICS.map(([k,n])=>`<a href="/teoria/${k}" class="${k===topic?'on':''}">${tx(n)}</a>`).join('')}</div>`
    +`<section class="th-main" data-topic="${topic}">${SECTIONS[topic]()}</section></div>`
-   +`<p class="th-credit">${L==='en'?'Sounds':'Sons'}: ${L==='en'?'recorded acoustic guitar':'guitarra acústica gravada'} — <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a> (Nicholaus Brosowsky), <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>.</p>`;
+;
   document.title=tx(TOPICS.find(t=>t[0]===topic)[1])+' — '+title}
 function rerender(){const sec=m.querySelector('.th-main');if(sec)sec.innerHTML=SECTIONS[sec.dataset.topic]()}
 const hit=el=>{el.classList.add('hit');setTimeout(()=>el.classList.remove('hit'),260)};

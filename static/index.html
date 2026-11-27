@@ -414,7 +414,7 @@ async function route(){
   $('#nav').innerHTML=[...SECS,'teoria'].map((k,n)=>`<a href="/${k}" class="${sec===k?'on':''}"><b>${num(n+1)}</b>${T[L][k]}</a>`).join('');
   document.querySelectorAll('#lg a').forEach(a=>a.classList.toggle('on',a.dataset.l===L));
   footer(site);
-  if(sec==='privacidade'){m.innerHTML=`<article class="post"><h1 class="disp">${T[L].privacy}</h1><span class="rule"></span>${T[L].privacyTxt.map(t=>`<p style="margin-bottom:18px">${t}</p>`).join('')}<p style="margin-top:40px;font-size:14px;color:var(--dim)">${L==='en'?'Credits — guitar sounds on the Theory page: recordings by Nicholaus Brosowsky, licensed CC BY 3.0.':'Créditos — sons de guitarra da página Teoria: gravações de Nicholaus Brosowsky, licença CC BY 3.0.'}</p></article>`}
+  if(sec==='privacidade'){m.innerHTML=`<article class="post"><h1 class="disp">${T[L].privacy}</h1><span class="rule"></span>${T[L].privacyTxt.map(t=>`<p style="margin-bottom:18px">${t}</p>`).join('')}</article>`}
   else if(sec==='teoria'){await loadTheory();if(location.pathname.split('/')[1]!=='teoria')return;theoryPage(id||'instrumentos')}
   else if(sec==='opinioes')id?postPage(d,id):listPage(d,'opinioes');
   else if(SECS.includes(sec))id?itemPage(d,sec,id):listPage(d,sec);
