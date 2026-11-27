@@ -460,7 +460,6 @@ async function route(req, env, ctx, url) {
       || await DB.prepare("SELECT id FROM visits WHERE vid=? ORDER BY t DESC LIMIT 1").bind(vid).first();
     if (!row) return empty();
     const str = (v, n) => String(v || "").replace(/[<>]/g, "").slice(0, n);
-    if (d.who) { const w = whoLabel(str(d.who.name, 40), str(d.who.ig, 40).replace(/^@/, "")); if (w) await DB.prepare("UPDATE visits SET data=json_set(data,'$.who',?) WHERE id=?").bind(w, row.id).run(); }
     if (d.eng && typeof d.eng === "object") {
       const e = d.eng, arr = (a) => (Array.isArray(a) ? a.slice(0, 10).map((x) => str(x, 80)) : []);
       const eng = { secs: Math.min(86400, +e.secs || 0), scroll: Math.min(100, +e.scroll || 0), links: arr(e.links), plays: arr(e.plays), gpu: str(e.gpu, 80), bat: str(e.bat, 30) };
