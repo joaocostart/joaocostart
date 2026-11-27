@@ -354,7 +354,7 @@
       for (const k of ["screen", "lang", "tz"]) s[k] = s[k] || r[k] || "";
       if (r.eng) { const e = (s.eng ||= { secs: 0, scroll: {}, links: [], plays: [], gpu: "", bat: "" }); e.secs += r.eng.secs || 0;
         e.scroll[pname(r.path)] = Math.max(e.scroll[pname(r.path)] || 0, r.eng.scroll || 0); e.links.push(...(r.eng.links || [])); e.plays.push(...(r.eng.plays || []));
-        e.gpu ||= r.eng.gpu || ""; e.bat ||= r.eng.bat || ""; e.loc ||= r.eng.loc || ""; }
+        e.gpu ||= r.eng.gpu || ""; e.bat ||= r.eng.bat || ""; }
       if (r.who && !s.named) { s.who = r.who; s.named = true; }
       const pg = pname(r.path);
       if (!s.pages.length || s.pages[s.pages.length - 1] !== pg) s.pages.push(pg);

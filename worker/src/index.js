@@ -462,12 +462,12 @@ async function route(req, env, ctx, url) {
     const str = (v, n) => String(v || "").replace(/[<>]/g, "").slice(0, n);
     if (d.eng && typeof d.eng === "object") {
       const e = d.eng, arr = (a) => (Array.isArray(a) ? a.slice(0, 10).map((x) => str(x, 80)) : []);
-      const eng = { secs: Math.min(86400, +e.secs || 0), scroll: Math.min(100, +e.scroll || 0), links: arr(e.links), plays: arr(e.plays), gpu: str(e.gpu, 80), bat: str(e.bat, 30), loc: str(e.loc, 40) };
+      const eng = { secs: Math.min(86400, +e.secs || 0), scroll: Math.min(100, +e.scroll || 0), links: arr(e.links), plays: arr(e.plays), gpu: str(e.gpu, 80), bat: str(e.bat, 30) };
       const prev = await DB.prepare("SELECT json_extract(data,'$.eng') e FROM visits WHERE id=?").bind(row.id).first();
       let o = {}; try { o = JSON.parse((prev && prev.e) || "{}"); } catch { }
       eng.secs += o.secs || 0; eng.scroll = Math.max(eng.scroll, o.scroll || 0);
       eng.links = [...(o.links || []), ...eng.links].slice(0, 20); eng.plays = [...(o.plays || []), ...eng.plays].slice(0, 20);
-      eng.gpu ||= o.gpu || ""; eng.bat ||= o.bat || ""; eng.loc ||= o.loc || "";
+      eng.gpu ||= o.gpu || ""; eng.bat ||= o.bat || "";
       await DB.prepare("UPDATE visits SET data=json_set(data,'$.eng',json(?)) WHERE id=?").bind(JSON.stringify(eng), row.id).run();
     }
     return empty();
