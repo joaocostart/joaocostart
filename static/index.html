@@ -348,8 +348,9 @@ function consentBanner(){if(consent()||document.getElementById('cbx'))return;con
   d.querySelector('#cb_no').onclick=()=>{try{localStorage.setItem('consent','no')}catch(x){}d.remove()};
   d.querySelector('#cb_ok').onclick=()=>{try{localStorage.setItem('consent','yes');}catch(x){}
     d.remove();loadGA();engInit();}}
-if(consent()==='yes'){loadGA();engInit()}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(consentBanner,1200));else setTimeout(consentBanner,1200);
+if(consent()==='yes')engInit();
+window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){dataLayer.push(arguments)};gtag('consent','default',{analytics_storage:consent()==='yes'?'granted':'denied',ad_storage:'denied'});loadGA();
+
 /* fotos: só aparecem depois de o filtro preto e branco estar aplicado (sem flash a cores) */
 (()=>{const SEL='.portrait img,.art>img',ok=i=>{if(i.complete&&i.naturalWidth)requestAnimationFrame(()=>requestAnimationFrame(()=>i.classList.add('ok')))};
  document.addEventListener('load',e=>{if(e.target.matches&&e.target.matches(SEL))ok(e.target)},true);
