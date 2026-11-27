@@ -432,4 +432,12 @@ function showTab(t){t=OLD[t]||t;if(!document.querySelector(`.tab[data-tab="${t}"
 onhashchange=()=>showTab(location.hash.slice(1));
 showTab(location.hash.slice(1)||'resumo');
 refresh().then(()=>{$('r_pub').textContent=Object.keys(items).length+Object.keys(posts).length}).then(loadVisits).then(loadComments).then(loadNotify).then(loadPush)
+
+/* arrastar a tabela com o rato; roda do rato desloca para o lado quando já não há mais para baixo */
+document.addEventListener('mousedown',e=>{const b=e.target.closest('.scrollx');if(!b||e.button||e.target.closest('button,a,input'))return;
+ const x=e.pageX,y=e.pageY,l=b.scrollLeft,t=b.scrollTop;b.classList.add('drag');
+ const mv=ev=>{b.scrollLeft=l-(ev.pageX-x);b.scrollTop=t-(ev.pageY-y)},up=()=>{b.classList.remove('drag');removeEventListener('mousemove',mv);removeEventListener('mouseup',up)};
+ addEventListener('mousemove',mv);addEventListener('mouseup',up)});
+document.addEventListener('wheel',e=>{const b=e.target.closest('.scrollx');if(!b||b.scrollWidth<=b.clientWidth)return;
+ if(e.shiftKey||b.scrollTop+b.clientHeight>=b.scrollHeight-1&&e.deltaY>0&&b.scrollLeft+b.clientWidth<b.scrollWidth-1){b.scrollLeft+=e.deltaY||e.deltaX;e.preventDefault()}},{passive:false});
 </script></html>
