@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cormorant+SC:wght@500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
+.portrait img,.art>img{opacity:0}.portrait img.ok,.art>img.ok{opacity:1}
 /* ===== galeria · vintage · papel envelhecido, tinta sépia, latão e bordeaux ===== */
 :root{
  --bg:#ebe1cb;--bg2:#e3d7bc;--bg3:#d8caab;--mat:#efe6d3;--ink:#2b2119;--dim:#6f604d;--line:#c2b08c;
@@ -95,7 +96,7 @@ main{flex:1;padding:40px 0 110px}
 .frame{position:relative;background:linear-gradient(160deg,#f4ecdc,#e8dcc2);padding:9%;box-shadow:0 14px 30px rgba(60,40,15,.28),0 2px 4px rgba(60,40,15,.2);outline:1px solid var(--line)}
 .frame::before{content:"";position:absolute;inset:4.5%;border:1px solid rgba(139,106,47,.45);outline:1px solid rgba(139,106,47,.2);outline-offset:3px;pointer-events:none}
 .art{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--bg3);display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(60,40,15,.5)}
-.art>img,.art>video{width:100%;height:100%;object-fit:cover;object-position:top;filter:grayscale(.55) sepia(.4) contrast(1.03) brightness(.96);transition:filter .6s,transform 1.2s var(--ease)}
+.art>img,.art>video{width:100%;height:100%;object-fit:cover;object-position:top;filter:grayscale(.55) sepia(.4) contrast(1.03) brightness(.96);transition:transform 1.2s var(--ease)}
 .art::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(170deg,rgba(180,130,60,.16),rgba(90,60,25,.14));mix-blend-mode:soft-light;pointer-events:none;transition:opacity .6s}
 .card:hover .art::before,.feature:hover .art::before{opacity:0}
 .art>span{font-size:54px;color:var(--gold);font-style:italic}
@@ -348,6 +349,11 @@ function consentBanner(){if(consent()||document.getElementById('cbx'))return;con
     d.remove();loadGA();engInit();}}
 if(consent()==='yes'){loadGA();engInit()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(consentBanner,1200));else setTimeout(consentBanner,1200);
+/* fotos: só aparecem depois de o filtro preto e branco estar aplicado (sem flash a cores) */
+(()=>{const SEL='.portrait img,.art>img',ok=i=>{if(i.complete&&i.naturalWidth)requestAnimationFrame(()=>requestAnimationFrame(()=>i.classList.add('ok')))};
+ document.addEventListener('load',e=>{if(e.target.matches&&e.target.matches(SEL))ok(e.target)},true);
+ document.addEventListener('error',e=>{if(e.target.matches&&e.target.matches(SEL))e.target.classList.add('ok')},true);
+ const scan=()=>document.querySelectorAll(SEL).forEach(ok);new MutationObserver(scan).observe(document.documentElement,{childList:true,subtree:true});scan()})();
 /* ---- visitas ---- */
 let firstHit=true,vid='',model='',de='';
 // link personalizado (?de=código): guarda-o neste browser e limpa o endereço
