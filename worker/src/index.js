@@ -157,7 +157,7 @@ async function rdns(ip) {
     return ((d.Answer || []).find((a) => a.type === 12)?.data || "").replace(/\.$/, "").slice(0, 120);
   } catch { return ""; }
 }
-const isMe = (r, labels) => !!((labels[`vid:${r.vid}`] || {}).me || (labels[`ip:${r.ip}`] || {}).me);
+const isMe = (r, labels) => !!((labels[`vid:${r.vid}`] || {}).me || (labels[`ip:${r.ip}`] || {}).me || (r.ip4 && (labels[`ip:${r.ip4}`] || {}).me));
 
 // ---------------- notificações ----------------
 async function notifyCfg(env) {
@@ -471,6 +471,13 @@ async function route(req, env, ctx, url) {
       if (re.test(v)) rec[k] = v;
     }
     if (!rec.model && uaModel(ua)) rec.model = uaModel(ua);
+    const cf = req.cf || {}, ex = d.ex && typeof d.ex === "object" ? d.ex : {};
+    const ip4 = String(ex.ip4 || "");
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(ip4) && ip4 !== ip) rec.ip4 = ip4;
+    const more = { region: cf.region, cp: cf.postalCode, ll: cf.latitude && `${cf.latitude},${cf.longitude}`, asn: cf.asn && "AS" + cf.asn,
+      colo: cf.colo, http: cf.httpProtocol, tls: cf.tlsVersion, rtt: cf.clientTcpRtt, tzip: cf.timezone, eu: cf.isEUCountry === "1",
+      plat: ex.plat, cores: +ex.cores || 0, mem: +ex.mem || 0, net: ex.net, touch: +ex.touch || 0, dark: !!ex.dark, vp: ex.vp, langs: ex.langs, dnt: !!ex.dnt, pwa: !!ex.pwa };
+    for (const [k, v] of Object.entries(more)) if (v) rec[k] = typeof v === "string" ? v.replace(/[<>]/g, "").slice(0, 80) : v;
     const code = String(d.de || "").slice(0, 40);
     const link = code ? (await kvGet(env, "links", {}))[code] : null;
     if (link) rec.tag = link.name;

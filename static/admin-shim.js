@@ -342,12 +342,12 @@
       const key = r.vid || `${r.ip}|${r.dev}`, t = T(r.t);
       let s = open[key];
       if (!s || t - s._t > SESSION_GAP) {
-        const lab = (r.vid ? labels[`vid:${r.vid}`] : null) || labels[`ip:${r.ip}`] || {};
+        const lab = (r.vid ? labels[`vid:${r.vid}`] : null) || labels[`ip:${r.ip}`] || (r.ip4 && labels[`ip:${r.ip4}`]) || {};
         const v = vs[r.vid] || null;
         const known = lab.name || r.tag || tagOf[r.vid] || r.who || (v && v.who);
         s = { start: r.t, end: r.t, who: known || (v ? `Visitante nº ${v.n}` : "Visitante (antigo, sem número)"), named: !!known, me: !!lab.me,
           vid: r.vid || "", vn: v ? v.n : null, ip: r.ip, geo: r.geo || "", isp: r.isp || "", dev: r.dev, model: r.model || "",
-          source: sourceOf(r), pages: [], _t: t, key, rdns: r.rdns || "", screen: r.screen || "", lang: r.lang || "", tz: r.tz || "" };
+          source: sourceOf(r), pages: [], _t: t, key, rdns: r.rdns || "", screen: r.screen || "", lang: r.lang || "", tz: r.tz || "", ip4: r.ip4 || "", r };
         open[key] = s; out.push(s);
       }
       s._t = t; s.end = r.t; s.model = s.model || r.model || "";

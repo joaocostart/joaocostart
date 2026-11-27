@@ -59,7 +59,7 @@ ul.items li{padding:10px 0}
  .vt td{display:block;border:0;padding:0}
  .vt .c-who{grid-column:1;grid-row:1}.vt .c-who br,.vt .c-who>small{display:none}
  .vt .c-when{grid-column:2;grid-row:1;text-align:right;color:#959d99;font-size:13px;white-space:nowrap}.vt .c-when br{display:none}.vt .c-when small{margin-left:6px}
- .vt .c-where,.vt .c-dev,.vt .c-src,.vt .c-pages{grid-column:1/-1;display:grid;grid-template-columns:76px 1fr;column-gap:10px;padding-top:6px;margin-top:4px;border-top:1px solid #1d2326}
+ .vt .c-where,.vt .c-dev,.vt .c-src,.vt .c-pages,.vt .c-more{grid-column:1/-1;display:grid;grid-template-columns:76px 1fr;column-gap:10px;padding-top:6px;margin-top:4px;border-top:1px solid #1d2326}
  .vt td[data-l]::before{content:attr(data-l);grid-column:1;grid-row:1/span 3;color:#86b39b;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding-top:3px}
  .vt td[data-l] br{display:none}.vt td[data-l]>small{grid-column:2;display:block}
  .vt .pg{max-width:none}
@@ -155,7 +155,7 @@ td a{color:#e4e7e3}summary{cursor:pointer;color:#858d89;font-size:14px;margin-to
 <small>Pessoas diferentes (páginas vistas entre parênteses). Os dados ficam 90 dias.</small>
 <p class=ct>Cada visita</p>
 <small>Uma linha por visita (30 min sem atividade = visita nova). Carrega no nome para ver a ficha completa dessa pessoa; usa ✎ para lhe dar um nome.</small>
-<div class=scrollx><table class=vt><thead><tr><th>Quando</th><th>Quem</th><th>Onde</th><th>Aparelho</th><th>Veio de</th><th>Viu</th></tr></thead><tbody id=v_sessions></tbody></table></div>
+<div class=scrollx><table class=vt><thead><tr><th>Quando</th><th>Quem</th><th>Onde</th><th>Aparelho</th><th>Veio de</th><th>Viu</th><th>Mais</th></tr></thead><tbody id=v_sessions></tbody></table></div>
 <p class=ct>Links personalizados</p>
 <small>Cria um link para cada pessoa a quem envias o site. Quando ela o abrir, as visitas dela aparecem com o nome.</small>
 <div class=mebtns><input id=l_name placeholder="Nome da pessoa (ex.: Ana)" onkeydown="if(event.key==='Enter')addLink()"><button onclick=addLink() style="width:auto">Criar link</button></div>
@@ -323,22 +323,24 @@ async function loadVisits(){
 try{$('notrack').checked=!!localStorage.getItem('noTrack');$('hide_me').checked=!!localStorage.getItem('hideMe')}catch(e){}
 let myVid='';try{myVid=localStorage.getItem('vid')||''}catch(e){}
 let _v=null;
-function renderMe(v){_v=v;const me=v.visitors.find(x=>x.vid===myVid),lv=v.labels['vid:'+myVid]||{},li=v.you.label||{};
+function renderMe(v){_v=v;fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(j=>{_v.you.ip4=j.ip;if(j.ip!==v.you.ip&&$('myip4'))$('myip4').textContent=j.ip+' · IPv6: '}).catch(()=>{});const me=v.visitors.find(x=>x.vid===myVid),lv=v.labels['vid:'+myVid]||{},li=v.you.label||{};
   $('me_info').innerHTML=(myVid?`Este browser é o <b>${me?'Visitante nº '+me.n:'(ainda sem visitas registadas)'}</b>${lv.me?' <span class=tagme>marcado como tu</span>':''}`:'Este browser ainda não visitou o site.')
-   +`<br><small>O teu IP agora: ${esc(v.you.ip)}${li.me?' <span class=tagme>marcado como teu</span>':''} — se estás em casa, marca-o para reconhecer também as visitas antigas.</small>`}
-async function markMe(kind){const id=kind==='vid'?myVid:_v.you.ip;if(!id){alert('Abre primeiro o site neste browser.');return}
+   +`<br><small>O teu IP agora: <span id=myip4></span>${esc(v.you.ip)}${li.me?' <span class=tagme>marcado como teu</span>':''} — se estás em casa, marca-o para reconhecer também as visitas antigas.</small>`}
+async function markMe(kind){const id=kind==='vid'?myVid:(_v.you.ip4||_v.you.ip);if(!id){alert('Abre primeiro o site neste browser.');return}
   await fetch('/api/labels',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,id,name:'Eu',me:true})});loadVisits()}
 async function nameVisitor(kind,id,cur){const n=prompt('Quem é? (escreve "eu" se fores tu; vazio para remover o nome)',cur||'');if(n===null)return;
   const me=/^eu$/i.test(n.trim());
   await fetch('/api/labels',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,id,name:me?'Eu':n,me})});$('prof').hidden=true;loadVisits()}
+function moreOf(r){r=r||{};return [r.region&&r.region+(r.cp?' '+r.cp:''),r.asn,r.ip4&&r.ip!==r.ip4&&'IPv6 '+r.ip,r.plat,r.cores&&r.cores+' núcleos',r.mem&&r.mem+' GB RAM',r.net&&'rede '+r.net,r.touch&&'tátil',r.vp&&'janela '+r.vp,r.dark&&'modo escuro',r.pwa&&'app instalada',r.langs,r.dnt&&'Do Not Track',r.http,r.tls,r.rtt&&'latência '+r.rtt+'ms',r.colo&&'CF '+r.colo].filter(Boolean)}
+function moreFacts(ss,fact,uniq){const g=k=>uniq(ss.map(x=>(x.r||{})[k]).filter(v=>v!==true).map(String));return fact('IPv4',uniq(ss.map(x=>x.ip4)))+fact('Região',g('region'))+fact('Código postal',g('cp'))+fact('Coordenadas',uniq(ss.map(x=>(x.r||{}).ll)).map(String))+fact('ASN',g('asn'))+fact('Sistema',g('plat'))+fact('Núcleos CPU',g('cores'))+fact('RAM (GB)',g('mem'))+fact('Rede',g('net'))+fact('Janela',g('vp'))+fact('Idiomas',g('langs'))+fact('Tátil',g('touch'))+fact('Modo escuro',ss.some(x=>(x.r||{}).dark)?'sim':'')+fact('App instalada',ss.some(x=>(x.r||{}).pwa)?'sim':'')+fact('Do Not Track',ss.some(x=>(x.r||{}).dnt)?'sim':'')+fact('Protocolo',uniq(ss.map(x=>[(x.r||{}).http,(x.r||{}).tls].filter(Boolean).join(' '))))+fact('Latência (ms)',g('rtt'))+fact('Datacenter CF',g('colo'))+fact('User agent',uniq(ss.map(x=>(x.r||{}).ua)))}
 function renderSessions(ss){
   const tb=$('v_sessions');
   tb.innerHTML=ss.length?ss.map(x=>{const k=x.vid?'vid':'ip',id=x.vid||x.ip,mins=Math.round((new Date(x.end)-new Date(x.start))/60000);
     return `<tr class="${x.me?'me':''}"><td class=c-when>${x.start.slice(8,10)}/${x.start.slice(5,7)} ${x.start.slice(11,16)}<br><small>${mins?mins+' min':'1 página'}</small></td>`
-    +`<td class=c-who><button class="who ${x.named?'':'anon'}" data-key="${esc(x.key)}" onclick="openProfile(this.dataset.key)">${esc(x.me?'Tu':x.who)}</button>${x.me?'<span class=tagme>tu</span>':''}<button title="dar nome" onclick="nameVisitor('${k}','${esc(id)}','${esc(x.named&&!x.me?x.who:'')}')">✎</button><br><small>${esc(x.ip)}</small></td>`
+    +`<td class=c-who><button class="who ${x.named?'':'anon'}" data-key="${esc(x.key)}" onclick="openProfile(this.dataset.key)">${esc(x.me?'Tu':x.who)}</button>${x.me?'<span class=tagme>tu</span>':''}<button title="dar nome" onclick="nameVisitor('${k}','${esc(id)}','${esc(x.named&&!x.me?x.who:'')}')">✎</button><br><small>${esc(x.ip4||x.ip)}</small></td>`
     +`<td class=c-where data-l="Onde">${esc(x.geo||'—')}<br><small>${esc(x.isp||'')}${x.rdns?'<br>'+esc(x.rdns):''}</small></td>`
     +`<td class=c-dev data-l="Aparelho">${esc(x.model||x.dev.split(' · ')[0])}<br><small>${esc(x.model?x.dev:x.dev.split(' · ')[1]||'')}${x.screen?' · '+esc(x.screen.split('@')[0]):''}${x.lang?' · '+esc(x.lang):''}</small></td>`
-    +`<td class=c-src data-l="Veio de">${esc(x.source)}</td><td class="pg c-pages" data-l="Viu" title="${esc(x.pages.join(' → '))}">${x.pages.slice(0,4).map(esc).join(' → ')}${x.pages.length>4?` <small>(+${x.pages.length-4})</small>`:''}</td></tr>`}).join(''):'<tr><td colspan=6><small>Ainda sem visitas.</small></td></tr>'}
+    +`<td class=c-src data-l="Veio de">${esc(x.source)}</td><td class="pg c-pages" data-l="Viu" title="${esc(x.pages.join(' → '))}">${x.pages.slice(0,4).map(esc).join(' → ')}${x.pages.length>4?` <small>(+${x.pages.length-4})</small>`:''}</td><td class=c-more data-l="Mais"><small>${esc(moreOf(x.r).join(' · '))}</small></td></tr>`}).join(''):'<tr><td colspan=7><small>Ainda sem visitas.</small></td></tr>'}
 function openProfile(key){
   const ss=(_v.sessions||[]).filter(x=>x.key===key);if(!ss.length)return;
   const f=ss[ss.length-1],l=ss[0],uniq=a=>[...new Set(a.filter(Boolean))],mins=ss.reduce((t,x)=>t+Math.max(1,Math.round((new Date(x.end)-new Date(x.start))/60000)),0);
@@ -350,7 +352,7 @@ function openProfile(key){
    +`<div class=facts>`+fact('Primeira visita',fmt(f.start))+fact('Última visita',fmt(l.end))+fact('Visitas',String(ss.length))+fact('Tempo no site',mins+' min')
    +fact('Páginas diferentes',String(pages.length))+fact('Cidades',uniq(ss.map(x=>x.geo)))+fact('Operador',uniq(ss.map(x=>x.isp)))+fact('Rede (DNS)',uniq(ss.map(x=>x.rdns)))
    +fact('IPs',uniq(ss.map(x=>x.ip)))+fact('Aparelho',uniq(ss.map(x=>x.model||x.dev)))+fact('Browser',uniq(ss.map(x=>x.dev)))+fact('Ecrã',uniq(ss.map(x=>x.screen)))
-   +fact('Idioma',uniq(ss.map(x=>x.lang)))+fact('Fuso horário',uniq(ss.map(x=>x.tz)))+fact('Veio de',uniq(ss.map(x=>x.source)))+`</div>`
+   +fact('Idioma',uniq(ss.map(x=>x.lang)))+fact('Fuso horário',uniq(ss.map(x=>x.tz)))+fact('Veio de',uniq(ss.map(x=>x.source)))+moreFacts(ss,fact,uniq)+`</div>`
    +`<p class=ct>Páginas que viu</p><small>${pages.map(esc).join(' · ')}</small>`
    +`<p class=ct>Todas as visitas</p><table>${ss.map(x=>`<tr><td class=n>${fmt(x.start)}</td><td>${esc(x.source)}<br><small>${esc(x.geo||'')} · ${esc(x.model||x.dev)}</small></td><td><small>${x.pages.map(esc).join(' → ')}</small></td></tr>`).join('')}</table></div>`;
   $('prof').hidden=false;$('prof').onclick=e=>{if(e.target.id==='prof')$('prof').hidden=true}}

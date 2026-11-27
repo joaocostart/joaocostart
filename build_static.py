@@ -22,7 +22,7 @@ sys.path.insert(0, str(BASE))
 import app as site  # noqa: E402
 
 BUILD = __import__("time").strftime("%Y%m%d%H%M%S")  # muda a cada publicação: o browser vai buscar o conteúdo novo
-HEAD = f"<script>window.API_BASE={json.dumps(API)};window.BUILD={json.dumps(BUILD)}</script>\n"
+HEAD = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-VGYVZ37XK1"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date());gtag("config","G-VGYVZ37XK1")</script>\n' + f"<script>window.API_BASE={json.dumps(API)};window.BUILD={json.dumps(BUILD)}</script>\n"
 
 
 def get(c, path):

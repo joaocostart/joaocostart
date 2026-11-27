@@ -327,7 +327,11 @@ async function track(){  // regista a visita (não conta se no admin marcaste "n
   if(firstHit){try{ref=sessionStorage.getItem('ref');sessionStorage.removeItem('ref')}catch(e){}
     if(!ref&&document.referrer&&!document.referrer.startsWith(location.origin))ref=document.referrer}
   firstHit=false;
-  fetch(API+'/api/hit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:location.pathname||'/',token:(typeof acct!=='undefined'&&acct&&acct.token)||'',ref:ref||'',vid,model,de,screen:screen.width+'x'+screen.height+'@'+(Math.round((devicePixelRatio||1)*100)/100),lang:(navigator.language||'').slice(0,12),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),name:who.name||'',ig:who.ig||''}),keepalive:true}).catch(()=>{})}
+  const N=navigator,C=N.connection||{},mm=q=>{try{return matchMedia(q).matches}catch(e){return false}};
+  const ex={ip4:'',plat:(N.userAgentData&&N.userAgentData.platform)||N.platform||'',cores:N.hardwareConcurrency||0,mem:N.deviceMemory||0,net:[C.effectiveType,C.downlink&&C.downlink+'Mbps',C.saveData&&'poupança'].filter(Boolean).join(' '),touch:N.maxTouchPoints||0,dark:mm('(prefers-color-scheme: dark)'),vp:innerWidth+'x'+innerHeight,langs:(N.languages||[]).slice(0,5).join(','),dnt:N.doNotTrack==='1',pwa:mm('(display-mode: standalone)')};
+  window._ip4=window._ip4||Promise.race([fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(j=>j.ip),new Promise(r=>setTimeout(()=>r(''),1500))]).catch(()=>'');
+  _ip4.then(ip=>{ex.ip4=ip||'';
+  fetch(API+'/api/hit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ex,path:location.pathname||'/',token:(typeof acct!=='undefined'&&acct&&acct.token)||'',ref:ref||'',vid,model,de,screen:screen.width+'x'+screen.height+'@'+(Math.round((devicePixelRatio||1)*100)/100),lang:(navigator.language||'').slice(0,12),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),name:who.name||'',ig:who.ig||''}),keepalive:true}).catch(()=>{})})}
 
 /* ---- ícones oficiais (Instagram, Facebook e WhatsApp com o mesmo tamanho) ---- */
 let icoN=0;
